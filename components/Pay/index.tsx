@@ -18,7 +18,7 @@ const sendPayment = async () => {
 
   console.log(id);
 
-  const payload: PayCommandInput = {
+  const payload = {
     reference: id,
     to: "0x0c892815f0B058E69987920A23FBb33c834289cf", // Test address
     tokens: [
@@ -48,7 +48,7 @@ export const PayBlock = () => {
 
     MiniKit.subscribe(
       ResponseEvent.MiniAppPayment,
-      async (response: MiniAppPaymentPayload) => {
+      async (response: { status: string; }) => {
         if (response.status == "success") {
           const res = await fetch(`/api/confirm-payment`, {
             method: "POST",

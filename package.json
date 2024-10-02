@@ -11,14 +11,17 @@
   "dependencies": {
     "@worldcoin/minikit-js": "0.0.27-internal-alpha",
     "eruda": "^3.2.3",
+    "framer-motion": "^11.9.0",
     "next": "14.2.6",
     "next-auth": "^4.24.7",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "worldcoin": "^1.0.0"
   },
   "devDependencies": {
+    "@types/next": "^9.0.0",
     "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/react": "^18.3.11",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.6",
