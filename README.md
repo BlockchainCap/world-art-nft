@@ -18,5 +18,5 @@ View docs: [Docs](https://minikit-docs.vercel.app/mini-apps)
 
 Try it out here: https://world-art-eta.vercel.app/
 
----
+----
 
