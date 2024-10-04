@@ -42,7 +42,7 @@ export default function CollectionPage({ params }: { params: { collection: strin
             onClick={() => setSelectedNFT(nft)}
           >
             <img src={nft.image} alt={nft.name} className="w-full h-auto rounded" />
-            <p className="mt-2 text-[#E2DFDA]">{nft.name}</p>
+            <p className="mt-2 text-custom-white">{nft.name}</p>
           </div>
         ))}
       </div>
