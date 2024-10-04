@@ -8,11 +8,11 @@ export const TopNavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="w-full flex items-center justify-between p-4 bg-black border-b border-custom-white fixed top-0 z-50">
+    <nav className="w-full flex items-center justify-between p-4 bg-white border-b border-custom-white fixed top-0 z-50">
       <div className="flex items-center py-2">
         {/* <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="text-custom-white hover:text-white transition-colors"
+          className="text-custom-black hover:text-white transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>

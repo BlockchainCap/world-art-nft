@@ -57,7 +57,7 @@ export default function MyNFTs() {
           >
             <img src={nft.image} alt={nft.name} className="w-full h-48 object-cover" />
             <div className="p-4">
-              <h2 className="text-lg font-semibold mb-2 text-custom-white">{nft.name}</h2>
+              <h2 className="text-lg font-semibold mb-2 text-custom-black">{nft.name}</h2>
               <p className="text-sm text-gray-400 mb-2">{nft.collection}</p>
               <span className={`px-2 py-1 rounded-full text-xs ${nft.rarity === "Legendary" ? "bg-yellow-500 text-black" : "bg-blue-500 text-white"}`}>
                 {nft.rarity}

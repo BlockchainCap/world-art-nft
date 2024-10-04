@@ -18,7 +18,7 @@ export default function RootLayout({
   );
   return (
     <html lang="en">
-      <body className="bg-black text-custom-white font-twk-lausanne">
+      <body className="bg-white text-custom-black font-twk-lausanne">
         <NextAuthProvider>
           <ErudaProvider>
             <MiniKitProvider>
