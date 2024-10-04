@@ -19,6 +19,9 @@ const config: Config = {
         'custom-hover': '#D5D2CD',
         'custom-focus': '#C8C5C0',
       },
+      fontFamily: {
+        'twk-lausanne': ['TWKLausanne', 'sans-serif'],
+      },
     },
   },
   plugins: [],

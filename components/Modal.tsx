@@ -14,7 +14,7 @@ interface NFTModalProps {
 
 export const NFTModal: React.FC<NFTModalProps> = ({ nft, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4">
         <div className="flex justify-end mb-2">
           <button onClick={onClose} className="text-gray-400 hover:text-white">
