@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center min-h-screen px-4">
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        <h1 className="text-4xl font-normal font-twk-lausanne text-center text-custom-black mb-6">World Art</h1>
+        <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">World Art</h1>
        
         <div className="w-full max-w-md mb-6 px-4">
           <Image
