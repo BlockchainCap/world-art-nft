@@ -13,11 +13,12 @@ export default function Home() {
         <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">World Art</h1>
        
         <div className="w-full max-w-md mb-6 px-4">
-          <Image
-            src="/UH_rectangle.png" 
-            alt="NFT Cover Art"
-            width={500}
-            height={500}
+          <video
+            src="/hero.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
             className="w-full h-auto object-contain"
           />
         </div>
