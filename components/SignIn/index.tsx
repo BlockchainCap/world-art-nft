@@ -10,12 +10,15 @@ export const SignIn = () => {
   return (
     <div className="flex items-center">
       {session ? (
-        <button 
+        <div>
+        {/* <button 
           onClick={() => signOut()} 
           className={`${buttonStyle} text-custom-black bg-white hover:bg-custom-hover focus:ring-custom-focus`}
         >
-          Sign out
-        </button>
+          Sign out 
+        </button> */}
+        
+        </div>
       ) : (
         <button 
           onClick={() => signIn()} 
