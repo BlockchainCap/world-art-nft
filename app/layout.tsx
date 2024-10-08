@@ -24,7 +24,7 @@ export default function RootLayout({
             <MiniKitProvider>
               <div className="flex flex-col min-h-screen">
                 {/* <TopNavBar /> */}
-                <main className="flex-1 mt-[4vh]">{children}</main>
+                <main className="flex-1 mt-[6vh]">{children}</main>
               </div>
             </MiniKitProvider>
           </ErudaProvider>
