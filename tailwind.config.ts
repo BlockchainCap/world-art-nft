@@ -22,6 +22,9 @@ const config: Config = {
       fontFamily: {
         'twk-lausanne': ['TWKLausanne', 'sans-serif'],
       },
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+      },
     },
   },
   plugins: [],
