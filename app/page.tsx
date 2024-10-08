@@ -109,6 +109,7 @@ export default function Home() {
           World Art
         </h1>
 
+
         <div className="w-full max-w-md mb-6 px-4">
           <video
             src="/hero.mp4"
