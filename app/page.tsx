@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { saveAs } from 'file-saver';
 import { PreMinting } from "../components/Premint";
 import { PostMinting } from "../components/Postmint";
+import Link from 'next/link';
+import { ReturnMinting } from "../components/ReturnMinting";
+import { HamburgerMenu } from "../components/HamburgerMenu";
+
 
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
   const [isMinted, setIsMinted] = useState(false);
+  const [hasMintedBefore, setHasMintedBefore] = useState(false);
+  const [viewingMinted, setViewingMinted] = useState(false);
   const { data: session } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleMint = () => {
     setIsMinting(true);
@@ -17,11 +24,14 @@ export default function Home() {
     setTimeout(() => {
       setIsMinting(false);
       setIsMinted(true);
+      setHasMintedBefore(true);
+      localStorage.setItem('hasMinted', 'true');
     }, 3000); // 3 seconds delay to simulate minting
   };
 
   const handleClose = () => {
-    setIsMinted(false);
+    setHasMintedBefore(true);
+    setViewingMinted(false);
   };
 
   const handleSave = async () => {
@@ -40,8 +50,30 @@ export default function Home() {
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
   };
 
+  const handleViewYours = () => {
+    setViewingMinted(true);
+  };
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMinted = urlParams.get('viewMinted');
+    if (viewMinted === 'true') {
+      setViewingMinted(true);
+      // Clear the URL parameter
+      // window.history.replaceState({}, document.title, window.location.pathname);
+      // setIsMinted(true);
+    }
+  }, []);
+
   return (
+
     <div className="flex flex-col items-center min-h-screen px-4 relative">
+      <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
       {isMinting && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-0 flex items-center justify-center z-50">
           <svg className="animate-spin h-16 w-16" viewBox="0 0 24 24">
@@ -65,20 +97,29 @@ export default function Home() {
         </div>
       )}
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        {isMinted ? (
+        {isMinted || viewingMinted ? (
           <PostMinting
-            handleClose={handleClose}
+            handleClose={() => {
+              setIsMinted(false);
+              setViewingMinted(false);
+            }}
             handleSave={handleSave}
             handleShare={handleShare}
+          />
+        ) : hasMintedBefore ? (
+          <ReturnMinting 
+            onViewYours={handleViewYours} 
+            onMenuToggle={handleMenuToggle}
           />
         ) : (
           <PreMinting
             handleMint={handleMint}
             isMinting={isMinting}
+            onMenuToggle={handleMenuToggle}
           />
         )}
       </div>
-      {(session && !isMinted) && (
+      {/* {(session && !isMinted && !hasMintedBefore) && (
         <div className="mt-4">
           <button
             onClick={() => signOut()}
@@ -87,7 +128,7 @@ export default function Home() {
             Sign out
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

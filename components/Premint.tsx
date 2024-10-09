@@ -5,13 +5,35 @@ import { useSession } from "next-auth/react";
 interface PreMintingProps {
   handleMint: () => void;
   isMinting: boolean;
+  onMenuToggle: () => void;
 }
 
-export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting }) => {
+export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting,  onMenuToggle,
+}) => {
   const { data: session } = useSession();
 
   return (
     <>
+   <button
+          onClick={onMenuToggle}
+          className="absolute pl-8 left-0 pb-4 text-custom-black hover:text-gray-600 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 28 28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3.5" y1="14" x2="24.5" y2="14"></line>
+            <line x1="3.5" y1="7" x2="24.5" y2="7"></line>
+            <line x1="3.5" y1="21" x2="24.5" y2="21"></line>
+          </svg>
+        </button>
        <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">
         World Art
       </h1>

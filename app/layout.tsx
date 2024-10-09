@@ -3,7 +3,6 @@ import "./fonts.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
-import { TopNavBar } from "@/components/TopNavBar";
 
 export default function RootLayout({
   children,
@@ -23,7 +22,6 @@ export default function RootLayout({
           <ErudaProvider>
             <MiniKitProvider>
               <div className="flex flex-col min-h-screen">
-                {/* <TopNavBar /> */}
                 <main className="flex-1 mt-[6vh]">{children}</main>
               </div>
             </MiniKitProvider>
