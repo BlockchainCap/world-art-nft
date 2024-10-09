@@ -19,13 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-white text-custom-black font-twk-lausanne">
         <NextAuthProvider>
-          <ErudaProvider>
+          {/* <ErudaProvider> */}
             <MiniKitProvider>
               <div className="flex flex-col min-h-screen">
-                <main className="flex-1 mt-[6vh]">{children}</main>
+                <main className="flex-1 my-[6vh]">{children}</main>
               </div>
             </MiniKitProvider>
-          </ErudaProvider>
+          {/* </ErudaProvider> */}
         </NextAuthProvider>
       </body>
     </html>
