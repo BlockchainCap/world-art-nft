@@ -13,7 +13,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose })
 
   return (
     <div className={`fixed top-0 left-0 w-64 h-full bg-white transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out z-50`}>
-      <div className="p-6 mt-6 ml-4">
+      <div className="p-6 mt-8 ml-2">
+
         <button onClick={onClose} className="text-custom-black hover:text-white transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5"/>
