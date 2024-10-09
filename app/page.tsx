@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { saveAs } from 'file-saver';
@@ -28,6 +29,7 @@ export default function Home() {
       localStorage.setItem('hasMinted', 'true');
     }, 3000); // 3 seconds delay to simulate minting
   };
+
 
   const handleClose = () => {
     setHasMintedBefore(true);
@@ -94,6 +96,7 @@ export default function Home() {
               </linearGradient>
             </defs>
           </svg>
+
         </div>
       )}
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
@@ -124,11 +127,13 @@ export default function Home() {
           <button
             onClick={() => signOut()}
             className="px-12 py-4 rounded-full text-md font-medium my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-white focus:ring-black"
+
           >
             Sign out
           </button>
         </div>
       )} */}
+
     </div>
   );
 }
