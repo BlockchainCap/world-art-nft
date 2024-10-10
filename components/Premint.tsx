@@ -3,7 +3,7 @@ import { SignIn } from "@/components/SignIn";
 import { useSession } from "next-auth/react";
 
 interface PreMintingProps {
-  handleMint: () => void;
+  handleMint: () => Promise<void>;
   isMinting: boolean;
   onMenuToggle: () => void;
 }
@@ -61,10 +61,11 @@ export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting,  
 
       {session && (
         <button
-          className={`px-16 py-4 rounded-full text-md font-medium font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border ${isMinting ? 'bg-white text-black border-black' : 'bg-black border-white text-white ' } focus:ring-white`}
+          className={`px-16 py-4 rounded-full text-md font-medium font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border ${isMinting ? 'bg-white text-black border-black' : 'bg-black border-white text-white'} focus:ring-white`}
           onClick={handleMint}
+          disabled={isMinting}
         >
-          Collect
+          {isMinting ? 'Generating...' : 'Collect'}
         </button>
       )}
 
