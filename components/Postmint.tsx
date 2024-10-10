@@ -1,20 +1,26 @@
 import Image from "next/image";
 import { saveAs } from 'file-saver';
-import React from 'react';
-
+import React, { useState, useEffect } from 'react';
 
 interface PostMintingProps {
   handleClose: () => void;
   handleSave: () => void;
   handleShare: () => void;
+  imageUrl: string;
 }
 
-export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSave, handleShare }) => {
+export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSave, handleShare, imageUrl }) => {
+  const [imgSrc, setImgSrc] = useState(imageUrl);
+
+  useEffect(() => {
+    setImgSrc(imageUrl);
+  }, [imageUrl]);
+
   return (
     <>
-        <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black">
-          World Art
-        </h1>
+      <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black">
+        World Art
+      </h1>
       <button
         onClick={handleClose}
         className="self-end mb-2 px-4 py-2 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 text-black bg-white hover:bg-gray-100 focus:ring-black"
@@ -22,14 +28,21 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
         Close
       </button>
       <div className="w-full max-w-md mb-2 px-4">
-        <Image
-          src="/UH_rectangle.png"
-          alt="Minted NFT"
-          width={500}
-          height={500}
-          layout="responsive"
-          objectFit="contain"
-        />
+        {imgSrc ? (
+          <div style={{ position: 'relative', width: '100%', paddingTop: '100%' }}>
+            <Image
+              src={imgSrc}
+              alt="Minted NFT"
+              layout="fill"
+              objectFit="contain"
+              onError={() => setImgSrc('/circle.jpg')}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-[500px] bg-gray-200 flex items-center justify-center">
+            <p>Image loading...</p>
+          </div>
+        )}
       </div>
       <p className="text-xs font-extralight text-center text-custom-black mb-4 max-w-xl px-4">
         Download your piece by long-pressing the image above.
