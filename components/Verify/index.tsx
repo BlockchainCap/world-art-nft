@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 export type VerifyCommandInput = {
   action: string;
   signal?: string;
-  verification_level?: VerificationLevel.Device; // Default: Orb
+  verification_level?: VerificationLevel.Device;  
 };
 
 const verifyPayload: VerifyCommandInput = {
@@ -24,7 +24,7 @@ const triggerVerify = () => {
   MiniKit.commands.verify(verifyPayload);
 };
 
-export const VerifyBlock = () => {
+export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null }) => {
   const [verificationDetails, setVerificationDetails] = useState<{
     nullifierHash: string | null;
     merkleRoot: string | null;
@@ -114,8 +114,20 @@ export const VerifyBlock = () => {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("VerifyBlock: miniKitAddress prop changed:", miniKitAddress);
+  }, [miniKitAddress]);
+
+  console.log("Current miniKitAddress:", miniKitAddress);
+
   return (
     <div className="max-w-full overflow-x-auto">
+      {miniKitAddress && (
+        <div className="mb-4 text-black">
+          <h2>Ethereum Address:</h2>
+          <p><code className="break-all">{miniKitAddress}</code></p>
+        </div>
+      )}
       <h1>Verify Block</h1>
       <button className="bg-green-500 p-4" onClick={triggerVerify}>
         Test Verify

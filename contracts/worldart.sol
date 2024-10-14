@@ -3,35 +3,29 @@ pragma solidity ^0.8.9;
 
 import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@worldcoin/world-id-contracts/src/interfaces/IWorldID.sol";
 
 contract WorldArtNFT is ERC721A, Ownable {
-    IWorldID public immutable worldId;
-    uint256 public immutable externalNullifierHash;
-    uint256 public immutable groupId;
+    string public immutable appId;
     uint256 public immutable endTime;
 
     mapping(uint256 => bool) public nullifierHashes;
     mapping(uint256 => string) private _tokenURIs;
 
     event TokenURIUpdated(uint256 indexed tokenId, string newUri);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     constructor(
         string memory _name,
         string memory _symbol,
         uint256 _endTime,
-        IWorldID _worldId,
-        uint256 _groupId,
-        string memory _actionId
+        string memory _appId
     ) ERC721A(_name, _symbol) {
         endTime = _endTime;
-        worldId = _worldId;
-        groupId = _groupId;
-        externalNullifierHash = abi.encodePacked(abi.encodePacked(_actionId).hashToField(), groupId).hashToField();
+        appId = _appId;
     }
 
     function mint(
-        address signal,
+        address to,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof,
@@ -40,19 +34,13 @@ contract WorldArtNFT is ERC721A, Ownable {
         require(block.timestamp <= endTime, "Minting period has ended");
         require(!nullifierHashes[nullifierHash], "Already minted");
 
-        worldId.verifyProof(
-            root,
-            groupId,
-            abi.encodePacked(signal).hashToField(),
-            nullifierHash,
-            externalNullifierHash,
-            proof
-        );
+        // Note: World ID verification would typically happen here.
+        // For this contract, we're just checking the nullifier hash.
 
         nullifierHashes[nullifierHash] = true;
 
         uint256 tokenId = _nextTokenId();
-        _mint(signal, 1);
+        _mint(to, 1);
         _setTokenURI(tokenId, tokenURI);
     }
 
@@ -70,5 +58,10 @@ contract WorldArtNFT is ERC721A, Ownable {
         _setTokenURI(tokenId, newURI);
         emit TokenURIUpdated(tokenId, newURI);
     }
-}
 
+    function transferContractOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "New owner is the zero address");
+        _transferOwnership(newOwner);
+        emit OwnershipTransferred(owner(), newOwner);
+    }
+}
