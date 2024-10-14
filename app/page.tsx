@@ -155,7 +155,7 @@ export default function Home() {
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       {isMinting && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-0 flex items-start mt-[38vh] justify-center z-50">
           <svg className="animate-spin h-16 w-16" viewBox="0 0 24 24">
             <circle
               className="opacity-25"

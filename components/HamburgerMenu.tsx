@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
+import router from "next/router";
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -30,19 +31,19 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isOpen, onClose })
           </svg>
           Home
         </Link> */}
-        <Link href="/explore" className="flex items-center px-6 pb-4 pt-2 text-custom-black transition-colors" onClick={onClose}>
-          <svg className="mr-4" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <Link href="/explore/unique-humans" className="flex items-center px-6 pb-4 pt-2 ml-3 text-custom-black transition-colors" onClick={onClose}>
+          {/* <svg className="mr-4" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Explore Collections
+          </svg> */}
+          Unique Humans Gallery
         </Link>
-        <Link href="/inventory" className="flex items-center px-6 py-4 text-custom-black transition-colors" onClick={onClose}>
-          <svg className="mr-4" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <Link href="/?viewMinted=true" className="flex items-center px-6 py-4 ml-3 text-custom-black transition-colors" onClick={() => { onClose(); router.push('/?viewMinted=true'); }}>
+          {/* <svg className="mr-4" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          My NFTs
+          </svg> */}
+          My Collection
         </Link>
       </nav>
 
