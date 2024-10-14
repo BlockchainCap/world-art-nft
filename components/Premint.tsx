@@ -73,6 +73,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting,  
          Collected
        </div>
 
+
        <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
        <p className="text-md font-extralight text-center text-custom-black mt-4 max-w-xl px-4 ">

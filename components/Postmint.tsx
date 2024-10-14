@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
+
 interface PostMintingProps {
   handleClose: () => void;
   handleSave: () => void;
@@ -22,6 +23,7 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
       {/* <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black">
         World Art
       </h1> */}
+
       <button
         onClick={handleClose}
         className="self-end mb-4 px-4 pb-4 rounded-full text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 text-gray-600 bg-white hover:bg-gray-100 focus:ring-black"
@@ -46,6 +48,7 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
             onError={() => setImgSrc('/circle.jpg')}
             className="w-full h-auto object-contain"
           />
+
         ) : (
           <div className="w-full h-[500px] bg-gray-200 flex items-center justify-center">
             <p>Image loading...</p>
@@ -53,6 +56,7 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
         )}
       </motion.div>
      
+
 
       <h2 className="text-2xl font-medium text-center text-custom-black my-2">
         {" "}
