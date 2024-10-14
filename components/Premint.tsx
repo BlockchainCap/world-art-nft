@@ -2,6 +2,7 @@ import React from 'react';
 import { SignIn } from "@/components/SignIn";
 import { useSession } from "next-auth/react";
 import { motion } from 'framer-motion';
+import { VerifyBlock } from "@/components/Verify";
 
 interface PreMintingProps {
   handleMint: () => Promise<void>;
@@ -111,6 +112,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting,  
    )}
 
       {session && (
+        <>
         <button
           className={`px-16 py-4 mt-[40vh] rounded-full text-md font-medium font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${isMinting ? 'text-black' : 'bg-black border-white text-white'} focus:ring-white`}
           onClick={handleMint}
@@ -118,6 +120,9 @@ export const PreMinting: React.FC<PreMintingProps> = ({ handleMint, isMinting,  
         >
           {isMinting ? 'Generating...' : 'Generate Yours'}
         </button>
+
+<VerifyBlock />
+        </>
       )}
     </>
   );

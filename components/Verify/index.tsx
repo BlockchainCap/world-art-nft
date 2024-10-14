@@ -6,18 +6,18 @@ import {
   MiniAppVerifyActionPayload,
   ISuccessResult,
 } from "@worldcoin/minikit-js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export type VerifyCommandInput = {
   action: string;
   signal?: string;
-  verification_level?: VerificationLevel; // Default: Orb
+  verification_level?: VerificationLevel.Device; // Default: Orb
 };
 
 const verifyPayload: VerifyCommandInput = {
-  action: "test-action", // This is your action ID from the Developer Portal
+  action: "mint",
   signal: "",
-  verification_level: VerificationLevel.Orb, // Orb | Device
+  verification_level: VerificationLevel.Device,
 };
 
 const triggerVerify = () => {
@@ -25,6 +25,19 @@ const triggerVerify = () => {
 };
 
 export const VerifyBlock = () => {
+  const [verificationDetails, setVerificationDetails] = useState<{
+    nullifierHash: string | null;
+    merkleRoot: string | null;
+    proof: string | null;
+    verificationLevel: string | null;
+  }>({
+    nullifierHash: null,
+    merkleRoot: null,
+    proof: null,
+    verificationLevel: null,
+  });
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
       return;
@@ -34,26 +47,64 @@ export const VerifyBlock = () => {
       ResponseEvent.MiniAppVerifyAction,
       async (response: MiniAppVerifyActionPayload) => {
         if (response.status === "error") {
-          return console.log("Error payload", response);
+          setVerificationError("Error in MiniApp verification");
+          console.error("Error payload", response);
+          // Log more details about the error
+          if ('error' in response) {
+            console.error("Error details:", response.error);
+          }
+          return;
         }
 
-        // Verify the proof in the backend
-        const verifyResponse = await fetch("/api/verify", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            payload: response as ISuccessResult, // Parses only the fields we need to verify
-            action: verifyPayload.action,
-            signal: verifyPayload.signal, // Optional
-          }),
-        });
+        const successResponse = response as ISuccessResult;
+        
+        try {
+          const verifyResponse = await fetch("/api/verify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              payload: {
+                merkle_root: successResponse.merkle_root,
+                nullifier_hash: successResponse.nullifier_hash,
+                proof: successResponse.proof,
+                verification_level: successResponse.verification_level,
+              },
+              action: verifyPayload.action,
+              signal: verifyPayload.signal,
+            }),
+          });
 
-        // TODO: Handle Success!
-        const verifyResponseJson = await verifyResponse.json();
-        if (verifyResponseJson.status === 200) {
-          console.log("Verification success!");
+          const verifyResponseJson = await verifyResponse.json();
+          if (verifyResponseJson.success) {
+            console.log("Verification success!");
+            console.log(verifyResponseJson);
+            setVerificationDetails({
+              nullifierHash: successResponse.nullifier_hash,
+              merkleRoot: successResponse.merkle_root,
+              proof: successResponse.proof,
+              verificationLevel: successResponse.verification_level,
+            });
+            setVerificationError(null);
+          } else {
+            setVerificationError(verifyResponseJson.error || "Verification failed");
+            setVerificationDetails({
+              nullifierHash: null,
+              merkleRoot: null,
+              proof: null,
+              verificationLevel: null,
+            });
+          }
+        } catch (error) {
+          console.error("Error during verification:", error);
+          setVerificationError("An error occurred during verification");
+          setVerificationDetails({
+            nullifierHash: null,
+            merkleRoot: null,
+            proof: null,
+            verificationLevel: null,
+          });
         }
       }
     );
@@ -64,11 +115,29 @@ export const VerifyBlock = () => {
   }, []);
 
   return (
-    <div>
+    <div className="max-w-full overflow-x-auto">
       <h1>Verify Block</h1>
       <button className="bg-green-500 p-4" onClick={triggerVerify}>
         Test Verify
       </button>
+      {verificationDetails.nullifierHash && (
+        <div className="mt-4 text-black max-w-2xl">
+          <h2>Verification Details:</h2>
+          <p>Signal: <code className="break-all">{verifyPayload.signal}</code></p>
+          <p>Nullifier Hash: <code className="break-all">{verificationDetails.nullifierHash}</code></p>
+          <p>Merkle Root: <code className="break-all">{verificationDetails.merkleRoot}</code></p>
+          <p>Verification Level: <code>{verificationDetails.verificationLevel}</code></p>
+          <details>
+            <summary>Proof</summary>
+            <pre className="whitespace-pre-wrap break-all">{verificationDetails.proof}</pre>
+          </details>
+        </div>
+      )}
+      {verificationError && (
+        <p className="mt-4 text-red-500">
+          Error: {verificationError}
+        </p>
+      )}
     </div>
   );
 };
