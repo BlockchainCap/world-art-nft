@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { saveAs } from 'file-saver';
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 interface PostMintingProps {
   handleClose: () => void;
@@ -18,35 +19,40 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
 
   return (
     <>
-      <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black">
+      {/* <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black">
         World Art
-      </h1>
+      </h1> */}
       <button
         onClick={handleClose}
-        className="self-end mb-2 px-4 py-2 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 text-black bg-white hover:bg-gray-100 focus:ring-black"
+        className="self-end mb-4 px-4 pb-4 rounded-full text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 text-gray-600 bg-white hover:bg-gray-100 focus:ring-black"
       >
         Close
       </button>
-      <div className="w-full max-w-md mb-2 px-4">
+      
+      <motion.div 
+        className="w-full mb-6 px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {imgSrc ? (
-          <div style={{ position: 'relative', width: '100%', paddingTop: '100%' }}>
-            <Image
-              src={imgSrc}
-              alt="Minted NFT"
-              layout="fill"
-              objectFit="contain"
-              onError={() => setImgSrc('/circle.jpg')}
-            />
-          </div>
+          <Image
+            src={imgSrc}
+            alt="Minted NFT"
+            width={1920}
+            height={1080}
+            layout="responsive"
+            objectFit="contain"
+            onError={() => setImgSrc('/circle.jpg')}
+            className="w-full h-auto object-contain"
+          />
         ) : (
           <div className="w-full h-[500px] bg-gray-200 flex items-center justify-center">
             <p>Image loading...</p>
           </div>
         )}
-      </div>
-      <p className="text-xs font-extralight text-center text-custom-black mb-4 max-w-xl px-4">
-        Download your piece by long-pressing the image above.
-      </p>
+      </motion.div>
+     
 
       <h2 className="text-2xl font-medium text-center text-custom-black my-2">
         {" "}
@@ -64,16 +70,20 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
           Share on X
         </button>
         <a
-          href="https://opensea.io/" 
+          href="/collection/unique-humans" 
           target="_blank"
           rel="noopener noreferrer"
           className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"
         >
-          View on OpenSea
+          View Collection Gallery
         </a>
+        
       </div>
+      <p className="text-xs font-extralight text-center text-custom-black my-4 max-w-xl px-4">
+        Long-press the image above to download.
+      </p>
 
-      <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
+      {/* <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
       <p className="text-md font-extralight text-center text-custom-black mt-4 max-w-xl px-4 ">
         Unique Humans is a generative portrait collection inspired by anonymous
@@ -105,7 +115,7 @@ export const PostMinting: React.FC<PostMintingProps> = ({ handleClose, handleSav
         >
           @spongenuity
         </a>
-      </div>
+      </div> */}
     </>
   );
 };
