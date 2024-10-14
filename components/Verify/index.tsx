@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 export type VerifyCommandInput = {
   action: string;
   signal?: string;
-  verification_level?: VerificationLevel.Device;  
+  verification_level?: VerificationLevel.Device;
 };
 
 const verifyPayload: VerifyCommandInput = {
@@ -24,7 +24,49 @@ const triggerVerify = () => {
   MiniKit.commands.verify(verifyPayload);
 };
 
-export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null }) => {
+interface VerificationDetailsProps {
+  details: {
+    nullifierHash: string | null;
+    merkleRoot: string | null;
+    proof: string | null;
+    verificationLevel: string | null;
+  };
+  verifyPayload: VerifyCommandInput;
+}
+
+const VerificationDetails: React.FC<VerificationDetailsProps> = ({ details, verifyPayload }) => (
+  <div className="w-full text-black">
+    <h2 className="font-semibold">Verification Details:</h2>
+    <p>
+      Signal: <code className="break-all">{verifyPayload.signal}</code>
+    </p>
+    <p>
+      Nullifier Hash: <code className="break-all">{details.nullifierHash}</code>
+    </p>
+    <p>
+      Merkle Root: <code className="break-all">{details.merkleRoot}</code>
+    </p>
+    <p>
+      Verification Level: <code>{details.verificationLevel}</code>
+    </p>
+    <details>
+      <summary>Proof</summary>
+      <pre className="whitespace-pre-wrap break-all text-xs">
+        {details.proof}
+      </pre>
+    </details>
+  </div>
+);
+
+export const VerifyBlock = ({
+  miniKitAddress,
+  onVerificationSuccess,
+  isMinting,
+}: {
+  miniKitAddress: string | null;
+  onVerificationSuccess: (nullifierHash: string) => Promise<void>;
+  isMinting: boolean;
+}) => {
   const [verificationDetails, setVerificationDetails] = useState<{
     nullifierHash: string | null;
     merkleRoot: string | null;
@@ -36,7 +78,9 @@ export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null 
     proof: null,
     verificationLevel: null,
   });
-  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
@@ -50,14 +94,14 @@ export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null 
           setVerificationError("Error in MiniApp verification");
           console.error("Error payload", response);
           // Log more details about the error
-          if ('error' in response) {
+          if ("error" in response) {
             console.error("Error details:", response.error);
           }
           return;
         }
 
         const successResponse = response as ISuccessResult;
-        
+
         try {
           const verifyResponse = await fetch("/api/verify", {
             method: "POST",
@@ -87,8 +131,11 @@ export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null 
               verificationLevel: successResponse.verification_level,
             });
             setVerificationError(null);
+            onVerificationSuccess(successResponse.nullifier_hash);
           } else {
-            setVerificationError(verifyResponseJson.error || "Verification failed");
+            setVerificationError(
+              verifyResponseJson.error || "Verification failed"
+            );
             setVerificationDetails({
               nullifierHash: null,
               merkleRoot: null,
@@ -120,35 +167,39 @@ export const VerifyBlock = ({ miniKitAddress }: { miniKitAddress: string | null 
 
   console.log("Current miniKitAddress:", miniKitAddress);
 
+  const handleVerifyAndMint = () => {
+    triggerVerify();
+  };
+
   return (
-    <div className="max-w-full overflow-x-auto">
+    <div className="max-w-m mx-6 flex flex-col items-center">
+      <button
+        className={`px-16 py-4 rounded-full text-md font-bold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
+          isMinting 
+            ? "bg-white text-black" 
+            : "bg-black text-white border-white"
+        } focus:ring-white`}
+        onClick={handleVerifyAndMint}
+        disabled={isMinting}
+      >
+        <span className="text-white">
+          {isMinting ? "Verifying & Generating..." : "Generate Yours"}
+        </span>
+      </button>
       {miniKitAddress && (
-        <div className="mb-4 text-black">
-          <h2>Ethereum Address:</h2>
-          <p><code className="break-all">{miniKitAddress}</code></p>
+        <div className="w-full pt-4 text-black">
+          <h2 className="font-semibold">Your Eth Address:</h2>
+          <p>
+            <code className="break-all">{miniKitAddress}</code>
+          </p>
         </div>
       )}
-      <h1>Verify Block</h1>
-      <button className="bg-green-500 p-4" onClick={triggerVerify}>
-        Test Verify
-      </button>
+
       {verificationDetails.nullifierHash && (
-        <div className="mt-4 text-black max-w-2xl">
-          <h2>Verification Details:</h2>
-          <p>Signal: <code className="break-all">{verifyPayload.signal}</code></p>
-          <p>Nullifier Hash: <code className="break-all">{verificationDetails.nullifierHash}</code></p>
-          <p>Merkle Root: <code className="break-all">{verificationDetails.merkleRoot}</code></p>
-          <p>Verification Level: <code>{verificationDetails.verificationLevel}</code></p>
-          <details>
-            <summary>Proof</summary>
-            <pre className="whitespace-pre-wrap break-all">{verificationDetails.proof}</pre>
-          </details>
-        </div>
+        <VerificationDetails details={verificationDetails} verifyPayload={verifyPayload} />
       )}
       {verificationError && (
-        <p className="mt-4 text-red-500">
-          Error: {verificationError}
-        </p>
+        <p className="text-red-500">Error: {verificationError}</p>
       )}
     </div>
   );

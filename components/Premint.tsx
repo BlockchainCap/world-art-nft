@@ -7,7 +7,7 @@ import { useState } from "react";
 import { WalletSignIn } from "@/components/Wallet";
 
 interface PreMintingProps {
-  handleMint: () => Promise<void>;
+  handleMint: (nullifierHash: string) => Promise<void>;
   isMinting: boolean;
   onMenuToggle: () => void;
 }
@@ -123,17 +123,11 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
       {session && miniKitAddress && (
         <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
-          <button
-            className={`px-16 py-4 rounded-full text-md font-medium font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
-              isMinting ? "text-black" : "bg-black border-white text-white"
-            } focus:ring-white`}
-            onClick={handleMint}
-            disabled={isMinting}
-          >
-            {isMinting ? "Generating..." : "Generate Yours"}
-          </button>
-
-          <VerifyBlock miniKitAddress={miniKitAddress} />
+          <VerifyBlock 
+            miniKitAddress={miniKitAddress} 
+            onVerificationSuccess={handleMint}
+            isMinting={isMinting}
+          />
         </div>
       )}
     </>
