@@ -68,10 +68,9 @@ export default function Home() {
     }
   }, []);
 
-  const handleMint = async () => {
+  const handleMint = async (nullifierHash: string) => {
     setIsMinting(true);
-    const seed = generateRandomSeed();
-    console.log(`Initiating minting process with seed: ${seed}`);
+    console.log(`Initiating minting process with nullifier hash: ${nullifierHash}`);
 
     try {
       console.log('Sending request to API...');
@@ -80,7 +79,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ seed }),
+        body: JSON.stringify({ seed: nullifierHash }),
       });
 
       console.log('Response received:', response);
