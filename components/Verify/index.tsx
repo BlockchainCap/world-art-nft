@@ -7,6 +7,13 @@ import {
   ISuccessResult,
 } from "@worldcoin/minikit-js";
 import { useEffect, useState } from "react";
+import { createPublicClient, http, Chain } from "viem";
+import { worldChainSepolia } from "../WorldChainViemClient";
+
+
+
+const contractAddress = "0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5";
+
 
 export type VerifyCommandInput = {
   action: string;
@@ -34,7 +41,11 @@ interface VerificationDetailsProps {
   verifyPayload: VerifyCommandInput;
 }
 
-const VerificationDetails: React.FC<VerificationDetailsProps> = ({ details, verifyPayload }) => (
+const VerificationDetails: React.FC<VerificationDetailsProps> = ({
+  details,
+  verifyPayload,
+}) => (
+
   <div className="w-full text-black">
     <h2 className="font-semibold">Verification Details:</h2>
     <p>
@@ -64,7 +75,8 @@ export const VerifyBlock = ({
   isMinting,
 }: {
   miniKitAddress: string | null;
-  onVerificationSuccess: (nullifierHash: string) => Promise<void>;
+  onVerificationSuccess: (nullifierHash: string) => Promise<string | null>;
+
   isMinting: boolean;
 }) => {
   const [verificationDetails, setVerificationDetails] = useState<{
@@ -81,6 +93,13 @@ export const VerifyBlock = ({
   const [verificationError, setVerificationError] = useState<string | null>(
     null
   );
+  const [verificationProgress, setVerificationProgress] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [mintingProgress, setMintingProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<
+    "idle" | "verifying" | "generating" | "minting"
+  >("idle");
+
 
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
@@ -93,7 +112,7 @@ export const VerifyBlock = ({
         if (response.status === "error") {
           setVerificationError("Error in MiniApp verification");
           console.error("Error payload", response);
-          // Log more details about the error
+
           if ("error" in response) {
             console.error("Error details:", response.error);
           }
@@ -103,6 +122,9 @@ export const VerifyBlock = ({
         const successResponse = response as ISuccessResult;
 
         try {
+          setCurrentStep("verifying");
+          setVerificationProgress(50);
+
           const verifyResponse = await fetch("/api/verify", {
             method: "POST",
             headers: {
@@ -120,6 +142,8 @@ export const VerifyBlock = ({
             }),
           });
 
+          setVerificationProgress(100);
+
           const verifyResponseJson = await verifyResponse.json();
           if (verifyResponseJson.success) {
             console.log("Verification success!");
@@ -131,7 +155,27 @@ export const VerifyBlock = ({
               verificationLevel: successResponse.verification_level,
             });
             setVerificationError(null);
-            onVerificationSuccess(successResponse.nullifier_hash);
+            setCurrentStep("generating");
+            setGenerationProgress(0);
+            const imageUrl = await onVerificationSuccess(
+              successResponse.nullifier_hash
+            );
+            if (imageUrl) {
+              setGenerationProgress(100);
+              setCurrentStep("minting");
+              setMintingProgress(0);
+              await mintNFT(
+                miniKitAddress!,
+                successResponse.nullifier_hash,
+                imageUrl
+              );
+              setMintingProgress(100);
+              setCurrentStep("idle");
+            } else {
+              setVerificationError("Failed to generate image");
+              setCurrentStep("idle");
+            }
+
           } else {
             setVerificationError(
               verifyResponseJson.error || "Verification failed"
@@ -161,45 +205,113 @@ export const VerifyBlock = ({
     };
   }, []);
 
-  useEffect(() => {
-    console.log("VerifyBlock: miniKitAddress prop changed:", miniKitAddress);
-  }, [miniKitAddress]);
-
-  console.log("Current miniKitAddress:", miniKitAddress);
-
   const handleVerifyAndMint = () => {
+    setCurrentStep("verifying");
+    setVerificationProgress(0);
     triggerVerify();
+  };
+
+  const mintNFT = async (
+    to: string,
+    nullifierHash: string,
+    tokenURI: string
+  ) => {
+    try {
+      setMintingProgress(25);
+      const response = await fetch("/api/mint-nft", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ to, nullifierHash, tokenURI }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Minting failed:", data.error, data.details);
+        throw new Error(`${data.error}: ${data.details}`);
+      }
+
+      setMintingProgress(75);
+      console.log(
+        "NFT minting transaction sent. Transaction hash:",
+        data.transactionHash
+      );
+
+      // Wait for the transaction to be mined
+      const publicClient = createPublicClient({
+        chain: worldChainSepolia,
+        transport: http(),
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: data.transactionHash,
+      });
+      console.log("NFT minted successfully. Transaction receipt:", receipt);
+
+      setMintingProgress(100);
+    } catch (error) {
+      console.error("Error minting NFT:", error);
+      setVerificationError(
+        error instanceof Error ? error.message : "Error minting NFT"
+      );
+      setMintingProgress(0);
+      setCurrentStep("idle");
+    }
+
   };
 
   return (
     <div className="max-w-m mx-6 flex flex-col items-center">
       <button
-        className={`px-16 py-4 rounded-full text-md font-bold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
-          isMinting 
-            ? "bg-white text-black" 
+        className={`px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
+          currentStep !== "idle"
+            ? "bg-white text-black"
             : "bg-black text-white border-white"
         } focus:ring-white`}
         onClick={handleVerifyAndMint}
-        disabled={isMinting}
+        disabled={currentStep !== "idle"}
       >
-        <span className="text-white">
-          {isMinting ? "Verifying & Generating..." : "Generate Yours"}
+        <span className={currentStep !== "idle" ? "text-black" : "text-white"}>
+          {currentStep === "idle"
+            ? "Generate Yours"
+            : "Verifying & Generating..."}
         </span>
       </button>
-      {miniKitAddress && (
+      {/* 
+      {currentStep !== 'idle' && (
+        <div className="w-full mt-4">
+          <div className="mb-2">
+            <span className="font-semibold">Verifying: </span>
+            <progress value={verificationProgress} max="100" className="w-full" />
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Generating: </span>
+            <progress value={generationProgress} max="100" className="w-full" />
+          </div>
+          <div className="mb-2">
+            <span className="font-semibold">Minting: </span>
+            <progress value={mintingProgress} max="100" className="w-full" />
+          </div>
+        </div>
+      )} */}
+
+      {/* {miniKitAddress && (
+
         <div className="w-full pt-4 text-black">
           <h2 className="font-semibold">Your Eth Address:</h2>
           <p>
             <code className="break-all">{miniKitAddress}</code>
           </p>
         </div>
-      )}
+      )} */}
 
-      {verificationDetails.nullifierHash && (
+      {/* {verificationDetails.nullifierHash && (
         <VerificationDetails details={verificationDetails} verifyPayload={verifyPayload} />
-      )}
+      )} */}
       {verificationError && (
-        <p className="text-red-500">Error: {verificationError}</p>
+        <p className="text-red-500 max-w-md px-8">Error: {verificationError}</p>
+
       )}
     </div>
   );
