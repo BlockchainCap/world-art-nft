@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createWalletClient, http, Chain } from 'viem';
+import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { worldartABI } from '../../../contracts/worldartABI';
 import { worldChainSepolia } from '@/components/WorldChainViemClient';

@@ -1,5 +1,5 @@
-import { Chain } from "viem";
- 
+import { Chain } from 'viem/chains'
+
 export const worldChainSepolia: Chain = {
     id: 4801,
     name: 'World Chain Sepolia',
@@ -20,3 +20,4 @@ export const worldChainSepolia: Chain = {
       default: { name: 'Explorer', url: 'https://worldchain-sepolia.explorer.alchemy.com/' },
     },
   };
+
