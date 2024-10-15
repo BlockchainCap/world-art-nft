@@ -2,13 +2,25 @@
 
 
 import { useState, useEffect, useCallback } from "react";
-import { signOut, useSession } from "next-auth/react";
-import { saveAs } from 'file-saver';
+import { useSession } from "next-auth/react";
 import { PreMinting } from "../components/Premint";
-import { PostMinting } from "../components/Postmint";
-import Link from 'next/link';
 import { ReturnMinting } from "../components/ReturnMinting";
 import { HamburgerMenu } from "../components/HamburgerMenu";
+import { NFTDetails } from "../components/NFTDetails";
+import { createPublicClient, http, Chain } from "viem";
+import { worldartABI } from "../contracts/worldartABI";
+import { worldChainSepolia } from "@/components/WorldChainViemClient";
+
+interface NFT {
+  id: number;
+  name: string;
+  image: string;
+  tokenId: string;
+  tokenURI: string;
+}
+
+
+const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
 
 type FetchOptions = {
   method: string;
@@ -18,12 +30,64 @@ type FetchOptions = {
 
 export default function Home() {
   const [isMinting, setIsMinting] = useState(false);
+  const [ownedNFT, setOwnedNFT] = useState<NFT | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
+  const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isMinted, setIsMinted] = useState(false);
   const [hasMintedBefore, setHasMintedBefore] = useState(false);
   const [viewingMinted, setViewingMinted] = useState(false);
-  const [imageUrl, setImageUrl] = useState("");
-  const { data: session } = useSession();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
+      const newClient = createPublicClient({
+        chain: worldChainSepolia,
+        transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
+      });
+      setClient(newClient);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (client && miniKitAddress) {
+      checkOwnedNFTs();
+    }
+  }, [client, miniKitAddress]);
+
+  const checkOwnedNFTs = async () => {
+    if (!client || !miniKitAddress) return;
+
+    try {
+      const ownedTokens = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'getOwnedTokens',
+        args: [miniKitAddress as `0x${string}`],
+      }) as bigint[];
+
+      if (ownedTokens.length > 0) {
+        const tokenId = Number(ownedTokens[0]);
+        const tokenURI = await client.readContract({
+          address: contractAddress as `0x${string}`,
+          abi: worldartABI,
+          functionName: 'tokenURI',
+          args: [BigInt(tokenId)],
+        }) as string;
+
+        setOwnedNFT({
+          id: tokenId,
+          name: `Unique Human #${tokenId}`,
+          image: tokenURI,
+          tokenId: tokenId.toString(),
+          tokenURI: tokenURI,
+        });
+      }
+    } catch (error) {
+      console.error("Error checking owned NFTs:", error);
+    }
+  };
 
   const generateRandomSeed = () => Math.floor(Math.random() * 1000000000);
 
@@ -132,19 +196,11 @@ export default function Home() {
     setViewingMinted(false);
   };
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      saveAs(blob, 'UniqueHuman.png');
-    } catch (error) {
-      console.error('Error saving image:', error);
-    }
-  };
+
 
   const handleShare = () => {
-    const tweetText = encodeURIComponent("Check out my Unique Human NFT from World Art! #UniqueHumans #WorldArt");
-    const tweetUrl = encodeURIComponent("https://world-art-eta.vercel.app/");
+    const tweetText = encodeURIComponent(`Check out my ${ownedNFT?.name || 'Unique Human'} edition from World Art! #UniqueHumans #WorldArt`);
+    const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${ownedNFT?.tokenId}`);
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
   };
 
@@ -168,7 +224,6 @@ export default function Home() {
   }, []);
 
   return (
-
     <div className="flex flex-col items-center min-h-screen px-4 relative">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
@@ -192,45 +247,32 @@ export default function Home() {
               </linearGradient>
             </defs>
           </svg>
-
         </div>
       )}
+
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        {isMinted || viewingMinted ? (
-          <PostMinting
-            handleClose={() => {
-              setIsMinted(false);
-              setViewingMinted(false);
-            }}
-            handleSave={handleSave}
-            handleShare={handleShare}
-            imageUrl={imageUrl}
-          />
-        ) : hasMintedBefore ? (
+        {
+        !miniKitAddress ? (
           <ReturnMinting 
-            onViewYours={handleViewYours} 
+            onViewYours={handleViewYours}
             onMenuToggle={handleMenuToggle}
+            setMiniKitAddress={setMiniKitAddress}
+          />
+        ) : ownedNFT ? (
+          <NFTDetails
+            handleClose={() => setOwnedNFT(null)}
+            handleShare={handleShare}
+            nft={ownedNFT}
           />
         ) : (
           <PreMinting
             handleMint={handleMint}
             isMinting={isMinting}
             onMenuToggle={handleMenuToggle}
+            onAddressChange={setMiniKitAddress}
           />
         )}
       </div>
-      {/* {(session && !isMinted && !hasMintedBefore) && (
-        <div className="mt-4">
-          <button
-            onClick={() => signOut()}
-            className="px-12 py-4 rounded-full text-md font-medium my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-white focus:ring-black"
-
-          >
-            Sign out
-          </button>
-        </div>
-      )} */}
-
     </div>
   );
 }

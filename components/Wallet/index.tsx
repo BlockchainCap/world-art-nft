@@ -92,12 +92,7 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
         </div>
       ) : (
         <>
-          {/* <button 
-            onClick={handleWalletSignIn} 
-            className={`${buttonStyle} text-custom-black bg-white hover:bg-custom-hover focus:ring-custom-focus`}
-          >
-            Sign in with Wallet
-          </button> */}
+
         </>
       )}
     </div>

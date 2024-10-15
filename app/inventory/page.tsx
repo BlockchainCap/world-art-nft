@@ -1,83 +1,245 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
+import { createPublicClient, http, Chain } from "viem";
+import { worldartABI } from "../../contracts/worldartABI";
+import { MiniKit, ResponseEvent, MiniAppWalletAuthPayload } from "@worldcoin/minikit-js";
+import { HamburgerMenu } from "../../components/HamburgerMenu";
+import { NFTDetails } from "../../components/NFTDetails";
+import { worldChainSepolia } from "@/components/WorldChainViemClient";
 
+
+const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
 
 interface NFT {
   id: number;
   name: string;
   image: string;
   tokenId: string;
-  collection: string;
-  rarity: string;
+  tokenURI: string;
 }
 
 export default function MyNFTs() {
-  const router = useRouter();
-
+  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
+  const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Placeholder data;
-  const myNFTs: NFT[] = [
-    {
-      id: 1,
-      name: "Unique Human #3412",
-      image: "/UH_rectangle.png",
-      tokenId: "0x123...456",
-      collection: "Unique Humans",
-      rarity: "Legendary",
-    },
 
-    // This is currently hardcoded, but in the future we will fetch this from the backend
-  ];
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
+      const newClient = createPublicClient({
+        chain: worldChainSepolia,
+        transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
+      });
+      setClient(newClient);
+    }
+
+    // Set up MiniKit subscription for wallet auth
+    if (MiniKit.isInstalled()) {
+      MiniKit.subscribe(ResponseEvent.MiniAppWalletAuth, handleWalletAuth);
+    }
+
+    return () => {
+      if (MiniKit.isInstalled()) {
+        MiniKit.unsubscribe(ResponseEvent.MiniAppWalletAuth);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (client && miniKitAddress) {
+      fetchOwnedNFTs();
+    }
+  }, [client, miniKitAddress]);
+
+  const handleWalletAuth = (response: MiniAppWalletAuthPayload) => {
+    if (response.status === 'success') {
+      setMiniKitAddress(response.address);
+    } else {
+      console.error('Wallet auth failed:', response);
+    }
+  };
+
+  const triggerWalletAuth = () => {
+    if (MiniKit.isInstalled()) {
+      MiniKit.commands.walletAuth({
+        nonce: Date.now().toString(),
+        requestId: "0",
+        expirationTime: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
+        notBefore: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+        statement: "Sign in with Ethereum to view your NFTs",
+      });
+    } else {
+      console.error('MiniKit is not installed');
+    }
+  };
+
+  const copyToClipboard = useCallback(() => {
+    if (miniKitAddress) {
+      navigator.clipboard.writeText(miniKitAddress)
+        .then(() => {
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        })
+        .catch(err => console.error('Failed to copy: ', err));
+    }
+  }, [miniKitAddress]);
+
+  async function fetchOwnedNFTs() {
+    if (!client || !miniKitAddress) return;
+
+    try {
+      setLoading(true);
+
+      const ownedTokens = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'getOwnedTokens',
+        args: [miniKitAddress as `0x${string}`],
+      }) as bigint[];
+
+      const fetchedNFTs = await Promise.all(
+        ownedTokens.map(tokenId => fetchNFTData(Number(tokenId)))
+      );
+
+      setNfts(fetchedNFTs.filter((nft): nft is NFT => nft !== null));
+    } catch (error) {
+      console.error("Error fetching owned NFTs:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function fetchNFTData(tokenId: number): Promise<NFT | null> {
+    if (!client) return null;
+
+    try {
+      const tokenURI = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'tokenURI',
+        args: [BigInt(tokenId)],
+      }) as string;
+
+      return {
+        id: tokenId,
+        name: `Unique Human #${tokenId}`,
+        image: tokenURI,
+        tokenId: tokenId.toString(),
+        tokenURI: tokenURI,
+      };
+    } catch (error) {
+      console.error(`Error fetching NFT data for token ${tokenId}:`, error);
+      return null;
+    }
+  }
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4">
-      <div className="w-full flex justify-start">
-        <Link href="/" className="px-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 mb-6 bg-white text-black focus:ring-black">
-          Back
-        </Link>
-      </div>
-      
-      <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">
-        My NFTs
-      </h1>
-      
-      <p className="text-md font-extralight text-center text-custom-black mb-4 max-w-xl px-4">
-        View and manage your collection from World Art.
-      </p>
-
-      <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
-
-      <motion.div 
-        className="grid grid-cols-2 gap-6 w-full max-w-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+      <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <button
+        onClick={handleMenuToggle}
+        className="absolute pl-8 left-0 pb-4 text-custom-black hover:text-gray-600 transition-colors"
       >
-        {myNFTs.map((nft) => (
-          <motion.div
-            key={nft.id}
-            className="bg-white overflow-hidden duration-300 cursor-pointer"
-            onClick={() => router.push('/?viewMinted=true')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <img src={nft.image} alt={nft.name} className="w-full h-48 object-cover" />
-            <div className="py-4">
-              <h2 className="text-md font-semibold mb-2 text-custom-black">{nft.name}</h2>
-              <p className="text-sm text-gray-600 mb-2">{nft.collection}</p>
-            
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="28"
+          height="28"
+          viewBox="0 0 28 28"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3.5" y1="14" x2="24.5" y2="14"></line>
+          <line x1="3.5" y1="7" x2="24.5" y2="7"></line>
+          <line x1="3.5" y1="21" x2="24.5" y2="21"></line>
+        </svg>
+      </button>
       
+      {selectedNFT ? (
+        <NFTDetails
+          handleClose={() => setSelectedNFT(null)}
+          handleShare={() => {
+            const tweetText = encodeURIComponent(`Check out my ${selectedNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
+            const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${selectedNFT.tokenId}`);
+            window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
+          }}
+          nft={selectedNFT}
+        />
+      ) : (
+        <>
+          <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">
+            My Collection
+          </h1>
+          
+          <p className="text-md font-extralight text-center text-custom-black mb-4 max-w-xl px-4">
+            View and manage your collection from World Art.
+          </p>
 
+          <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
+
+          {!miniKitAddress ? (
+            <button
+              onClick={triggerWalletAuth}
+              className="px-16 py-4 mt-[25vh] rounded-full text-md font-medium bg-black text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mb-4"
+            >
+              Load Collected Items
+            </button>
+          ) : (
+            <div className="flex items-center mb-6">
+              <p className="text-md font-extralight text-center text-custom-black mr-2">
+                Address: <code className="break-all font-twk-lausanne">{`${miniKitAddress.slice(0, 6)}...${miniKitAddress.slice(-4)}`}</code>
+              </p>
+              <button
+                onClick={copyToClipboard}
+                className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                {copySuccess ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          )}
+
+          {loading ? (
+            <p></p>
+          ) : (
+            <motion.div 
+              className="grid grid-cols-2 gap-6 w-full max-w-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {nfts.map((nft) => (
+                <motion.div
+                  key={nft.id}
+                  className="bg-white overflow-hidden duration-300 cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedNFT(nft)}
+                >
+                  <div className="aspect-w-1 aspect-h-1 w-full">
+                    <img src={nft.tokenURI} alt={nft.name} className="w-full h-full object-contain" />
+                  </div>
+                  <div className="p-4">
+                    <h2 className="text-md font-semibold mb-2 text-custom-black">{nft.name}</h2>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </>
+      )}
     </div>
   );
 }
-

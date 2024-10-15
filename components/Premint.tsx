@@ -3,22 +3,53 @@ import { SignIn } from "@/components/SignIn";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { VerifyBlock } from "@/components/Verify";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WalletSignIn } from "@/components/Wallet";
+import { createPublicClient, http } from "viem";
+import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldartABI } from "@/contracts/worldartABI"; 
 
 interface PreMintingProps {
   handleMint: (nullifierHash: string) => Promise<string | null>;
   isMinting: boolean;
   onMenuToggle: () => void;
+  onAddressChange: (address: string) => void;
 }
 
 export const PreMinting: React.FC<PreMintingProps> = ({
   handleMint,
   isMinting,
   onMenuToggle,
+  onAddressChange,
 }) => {
   const { data: session } = useSession();
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
+  const [totalSupply, setTotalSupply] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchTotalSupply = async () => {
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
+        const client = createPublicClient({
+          chain: worldChainSepolia,
+          transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
+        });
+
+        try {
+          const supply = await client.readContract({
+            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            abi: worldartABI,
+            functionName: 'totalSupply',
+          }) as bigint;
+
+          setTotalSupply(Number(supply));
+        } catch (error) {
+          console.error("Error fetching total supply:", error);
+        }
+      }
+    };
+
+    fetchTotalSupply();
+  }, []);
 
   return (
     <>
@@ -75,8 +106,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           <SignIn onAddressChange={setMiniKitAddress} />
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
-            <span className="font-semibold mr-1">5555</span> Unique Humans
-            Collected
+            <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
           </div>
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
@@ -117,7 +147,12 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
       {session && !miniKitAddress && (
         <div className="flex flex-col items-start justify-start mt-[40vh] h-screen">
-          <WalletSignIn onAddressChange={setMiniKitAddress} />
+          <WalletSignIn onAddressChange={(address) => { 
+            if (address !== null) {
+              setMiniKitAddress(address);
+              onAddressChange(address);
+            }
+          }} />
         </div>
       )}
 

@@ -2,27 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createWalletClient, http, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { worldartABI } from '../../../contracts/worldartABI';
+import { worldChainSepolia } from '@/components/WorldChainViemClient';
 
-const worldChainSepolia: Chain = {
-    id: 4801,
-    name: 'World Chain Sepolia',
-    nativeCurrency: {
-      decimals: 18,
-      name: 'Ether',
-      symbol: 'ETH',
-    },
-    rpcUrls: {
-      default: {
-        http: [process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL!],
-      },
-      public: {
-        http: [process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL!],
-      },
-    },
-    blockExplorers: {
-      default: { name: 'Explorer', url: 'https://worldchain-sepolia.explorer.alchemy.com/' },
-    },
-  };
 
 const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
 
