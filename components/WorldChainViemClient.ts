@@ -20,3 +20,4 @@ export const worldChainSepolia: Chain = {
       default: { name: 'Explorer', url: 'https://worldchain-sepolia.explorer.alchemy.com/' },
     },
   };
+
