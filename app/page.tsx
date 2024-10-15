@@ -89,7 +89,6 @@ export default function Home() {
     }
   };
 
-  const generateRandomSeed = () => Math.floor(Math.random() * 1000000000);
 
   const checkStatus = useCallback(async (taskId: string): Promise<string | null> => {
     console.log(`Checking status for task ID: ${taskId}`);
