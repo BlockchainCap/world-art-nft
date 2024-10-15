@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useSession } from "next-auth/react";
 import { SignIn } from "./SignIn";
 import { createPublicClient, http } from "viem";
-import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldChainMainnet } from "./WorldChainViemClient";
 import { worldartABI } from "@/contracts/worldartABI";
 import { NFTDetails } from "./NFTDetails";
 
@@ -27,13 +27,13 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
     const fetchTotalSupply = async () => {
       if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
         const client = createPublicClient({
-          chain: worldChainSepolia,
+          chain: worldChainMainnet,
           transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
         });
 
         try {
           const supply = await client.readContract({
-            address: '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D' as `0x${string}`,
+            address: '0xb03d978ac6a5b7d565431ef71b80b4191419a627' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -58,9 +58,49 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
   const handleShare = () => {
     if (userNFT) {
       const tweetText = encodeURIComponent(`Check out my ${userNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
-      const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D/instance/${userNFT.tokenId}`);
+      const tweetUrl = encodeURIComponent(`https://worldchain-mainnet.explorer.alchemy.com/token/0xb03d978ac6a5b7d565431ef71b80b4191419a627/instance/${userNFT.tokenId}`);
       window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
     }
+  };
+
+  const CountdownTimer: React.FC<{ targetDate: number }> = ({ targetDate }) => {
+    const [timeLeft, setTimeLeft] = useState<string>("");
+  
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+  
+        if (distance < 0) {
+          clearInterval(timer);
+          setTimeLeft("expired");
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  
+          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [targetDate]);
+  
+    if (timeLeft === "expired") {
+      return (
+        <div className="text-red-500 font-semibold text-center my-4">
+          The claim window for this collection has closed.
+        </div>
+      );
+    }
+  
+    return (
+      <div className="text-center my-4">
+        <p className="font-semibold">Time left to claim:</p>
+        <p>{timeLeft}</p>
+      </div>
+    );
   };
 
   return (
@@ -125,7 +165,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
         Thank you for being part of the collection. 
       </p> */}
 
-     {session ? (
+     
        <>
          {showNFTDetails && userNFT ? (
            <NFTDetails
@@ -153,17 +193,13 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
            </>
          )}
        </>
-     ) : (
-       <SignIn onAddressChange={(address: string | null) => {
-         if (address !== null) {
-           setMiniKitAddress(address);
-         }
-       }} />
-     )}
+     
 
 <div className="flex items-center my-4 justify-center text-md font-extralight text-center text-custom-black ">
       <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
       </div>
+
+      <CountdownTimer targetDate={1729828799000} />
       <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
        <p className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">

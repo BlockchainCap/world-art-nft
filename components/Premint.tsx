@@ -6,15 +6,15 @@ import { VerifyBlock } from "@/components/Verify";
 import { useState, useEffect } from "react";
 import { WalletSignIn } from "@/components/Wallet";
 import { createPublicClient, http } from "viem";
-import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldChainMainnet } from "./WorldChainViemClient";
 import { worldartABI } from "@/contracts/worldartABI"; 
-
+import Link from "next/link";
 interface PreMintingProps {
   handleMint: (nullifierHash: string) => Promise<string | null>;
+
   isMinting: boolean;
   onMenuToggle: () => void;
-  onAddressChange: (address: string | null) => void;
-  session: any;
+  onAddressChange: (address: string) => void;
 }
 
 export const PreMinting: React.FC<PreMintingProps> = ({
@@ -22,23 +22,24 @@ export const PreMinting: React.FC<PreMintingProps> = ({
   isMinting,
   onMenuToggle,
   onAddressChange,
-  session
 }) => {
+  const { data: session } = useSession();
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
   const [totalSupply, setTotalSupply] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const buttonStyle = "px-12 py-4 rounded-full text-md font-medium my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black";
+
 
   useEffect(() => {
     const fetchTotalSupply = async () => {
       if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
         const client = createPublicClient({
-          chain: worldChainSepolia,
+          chain: worldChainMainnet,
           transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
         });
 
         try {
           const supply = await client.readContract({
-            address: '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D' as `0x${string}`,
+            address: '0xb03d978ac6a5b7d565431ef71b80b4191419a627' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -52,13 +53,6 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
     fetchTotalSupply();
   }, []);
-
-  const handleAddressChange = async (address: string | null) => {
-    setIsLoading(true);
-    setMiniKitAddress(address);
-    await onAddressChange(address);
-    setIsLoading(false);
-  };
 
   const CountdownTimer: React.FC<{ targetDate: number }> = ({ targetDate }) => {
     const [timeLeft, setTimeLeft] = useState<string>("");
@@ -94,12 +88,12 @@ export const PreMinting: React.FC<PreMintingProps> = ({
   
     return (
       <div className="text-center my-4">
-        <p className="font-semibold">Time left to claim:</p>
+        <p className="font-semibold">Time left to claim: </p>
         <p>{timeLeft}</p>
       </div>
     );
   };
-  
+
 
   return (
     <>
@@ -153,12 +147,13 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           <p className="text-md font-semibold text-center text-custom-black mb-4">
             Qian Qian + Spongenuity
           </p>
-          <SignIn onAddressChange={handleAddressChange} />
+          <SignIn onAddressChange={setMiniKitAddress} />
+        
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
-          </div>
 
+          </div>
           <CountdownTimer targetDate={1729828799000} />
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
@@ -197,30 +192,30 @@ export const PreMinting: React.FC<PreMintingProps> = ({
         </>
       )}
 
-      {session && !miniKitAddress && !isLoading && (
+      {session && !miniKitAddress && (
         <div className="flex flex-col items-start justify-start mt-[40vh] h-screen">
-          <WalletSignIn onAddressChange={handleAddressChange} />
+          <WalletSignIn onAddressChange={(address) => { 
+            if (address !== null) {
+              setMiniKitAddress(address);
+              onAddressChange(address);
+            }
+          }} />
+
         </div>
       )}
 
-      {session && miniKitAddress && !isLoading && (
+      {session && miniKitAddress && (
         <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
           <VerifyBlock 
             miniKitAddress={miniKitAddress} 
             onVerificationSuccess={async (nullifierHash) => {
               return handleMint(nullifierHash);
             }}
+
             isMinting={isMinting}
           />
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
-          <p>Loading...</p>
         </div>
       )}
     </>
   );
 };
-

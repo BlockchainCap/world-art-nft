@@ -9,7 +9,8 @@ import { HamburgerMenu } from "../components/HamburgerMenu";
 import { NFTDetails } from "../components/NFTDetails";
 import { createPublicClient, http, Chain } from "viem";
 import { worldartABI } from "../contracts/worldartABI";
-import { worldChainSepolia } from "@/components/WorldChainViemClient";
+import { worldChainMainnet } from "@/components/WorldChainViemClient";
+import { useRouter } from 'next/navigation';
 
 interface NFT {
   id: number;
@@ -20,7 +21,7 @@ interface NFT {
 }
 
 
-const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
 type FetchOptions = {
   method: string;
@@ -37,25 +38,23 @@ export default function Home() {
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isMinted, setIsMinted] = useState(false);
-  const [showNFTDetails, setShowNFTDetails] = useState(false);
+  const [hasMintedBefore, setHasMintedBefore] = useState(false);
+  const [viewingMinted, setViewingMinted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [justMintedNFT, setJustMintedNFT] = useState<NFT | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
-        chain: worldChainSepolia,
+        chain: worldChainMainnet,
         transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
       });
       setClient(newClient);
     }
   }, []);
 
-  useEffect(() => {
-    if (client && miniKitAddress && session) {
-      checkOwnedNFTs();
-    }
-  }, [client, miniKitAddress, session]);
-
-  const checkOwnedNFTs = async () => {
+  const checkOwnedNFTs = useCallback(async () => {
     if (!client || !miniKitAddress) return null;
 
     try {
@@ -68,19 +67,22 @@ export default function Home() {
 
       if (ownedTokens.length > 0) {
         const tokenId = Number(ownedTokens[0]);
-        const tokenURI = await client.readContract({
+        const tokenURIData = await client.readContract({
           address: contractAddress as `0x${string}`,
           abi: worldartABI,
           functionName: 'tokenURI',
           args: [BigInt(tokenId)],
         }) as string;
 
+        // Decode the base64 encoded JSON data
+        const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
+
         const newNFT = {
           id: tokenId,
           name: `Unique Human #${tokenId}`,
-          image: tokenURI,
+          image: decodedData.image,
           tokenId: tokenId.toString(),
-          tokenURI: tokenURI,
+          tokenURI: decodedData.image,
         };
 
         setOwnedNFT(newNFT);
@@ -90,8 +92,21 @@ export default function Home() {
       console.error("Error checking owned NFTs:", error);
     }
     return null;
-  };
+  }, [client, miniKitAddress]);
 
+  useEffect(() => {
+    if (client && miniKitAddress) {
+      checkOwnedNFTs();
+    }
+    console.log('ownedNFT', ownedNFT);
+    console.log('miniKitAddress', miniKitAddress);
+  }, [client, miniKitAddress, checkOwnedNFTs]);
+
+  useEffect(() => {
+    if (session !== undefined && (ownedNFT !== undefined)) {
+      setIsLoading(false);
+    }
+  }, [session, ownedNFT]);
 
   const checkStatus = useCallback(async (taskId: string): Promise<string | null> => {
     console.log(`Checking status for task ID: ${taskId}`);
@@ -116,6 +131,8 @@ export default function Home() {
         setImageUrl(data.result.s3_url);
         setIsMinting(false);
         setIsMinted(true);
+        setHasMintedBefore(true);
+        localStorage.setItem('hasMinted', 'true');
         return data.result.s3_url;
       } else if (data.status === "Processing") {
         console.log(`Task ${taskId} still processing. Returning null.`);
@@ -134,13 +151,31 @@ export default function Home() {
     }
   }, []);
 
-  const handleMint = async (nullifierHash: string): Promise<string | null> => {
-    setIsMinting(true);
-    console.log(`Initiating minting process with nullifier hash: ${nullifierHash}`);
+  const fetchLatestTokenId = async (): Promise<number | null> => {
+    if (!client) return null;
 
     try {
-      console.log('Sending request to API...');
-      const response = await fetch('https://dreamlike-portrait-generator-api.onrender.com/api/generate_portrait', {
+      const totalSupply = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'totalSupply',
+      }) as bigint;
+
+      return Number(totalSupply);
+    } catch (error) {
+      console.error("Error fetching latest token ID:", error);
+    }
+    return null;
+  };
+
+  
+
+  const handleMint = async (nullifierHash: string): Promise<string | null> => {
+    setIsMinting(true);
+    console.log(`Minting with nullifier hash: ${nullifierHash}`);
+
+    try {
+      const response = await fetch("https://dreamlike-portrait-generator-api.onrender.com/api/generate_portrait", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,14 +201,28 @@ export default function Home() {
               const imageUrl = await checkStatus(data.task_id);
               if (imageUrl) {
                 setIsMinting(false);
-                setIsMinted(true);
-                // After successful minting:
-                const newNFT = await checkOwnedNFTs();
-                if (newNFT) {
-                  setOwnedNFT(newNFT);
-                  setShowNFTDetails(true);
+                
+                // Fetch the actual token data from the blockchain
+                const tokenId = await fetchLatestTokenId();
+                if (tokenId !== null) {
+                  const newNFT: NFT = {
+                    id: tokenId,
+                    name: `Unique Human #${tokenId}`,
+                    image: imageUrl,
+                    tokenId: tokenId.toString(),
+                    tokenURI: imageUrl,
+                  };
+                  setJustMintedNFT(newNFT);
+                  setIsMinted(true);
+                  setHasMintedBefore(true);
+                  localStorage.setItem('hasMinted', 'true');
+                  localStorage.setItem('justMintedNFT', JSON.stringify(newNFT));
+                  router.push(`/inventory?viewMinted=true&address=${miniKitAddress}`);
+                  resolve(imageUrl);
+                } else {
+                  console.error('Failed to fetch latest token ID');
+                  reject(new Error('Failed to fetch latest token ID'));
                 }
-                resolve(imageUrl);
               } else {
                 setTimeout(checkImageStatus, 5000); // Check again after 5 seconds
               }
@@ -199,25 +248,37 @@ export default function Home() {
   };
 
   const handleClose = () => {
-    setShowNFTDetails(false);
+    setHasMintedBefore(true);
+    setViewingMinted(false);
   };
+
+
 
   const handleShare = () => {
     const tweetText = encodeURIComponent(`Check out my ${ownedNFT?.name || 'Unique Human'} edition from World Art! #UniqueHumans #WorldArt`);
-    const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${ownedNFT?.tokenId}`);
+    const tweetUrl = encodeURIComponent(`https://worldchain-mainnet.explorer.alchemy.com/token/${contractAddress}/instance/${ownedNFT?.tokenId}`);
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
+  };
+
+  const handleViewYours = () => {
+    setViewingMinted(true);
   };
 
   const handleMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const setMiniKitAddressAsync = async (address: string | null) => {
-    setMiniKitAddress(address);
-    if (address) {
-      await checkOwnedNFTs();
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMinted = urlParams.get('viewMinted');
+    if (viewMinted === 'true') {
+      setViewingMinted(true);
+      // Clear the URL parameter
+      // window.history.replaceState({}, document.title, window.location.pathname);
+      // setIsMinted(true);
     }
-  };
+  }, []);
+  
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4 relative">
@@ -246,29 +307,26 @@ export default function Home() {
         </div>
       )}
 
-      <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        {showNFTDetails && ownedNFT ? (
-          <NFTDetails
-            handleClose={handleClose}
-            handleShare={handleShare}
-            nft={ownedNFT}
-          />
-        ) : ownedNFT ? (
-          <ReturnMinting 
-            onViewYours={() => setShowNFTDetails(true)}
-            onMenuToggle={handleMenuToggle}
-            setMiniKitAddress={setMiniKitAddress}
-          />
-        ) : (
-          <PreMinting
-            handleMint={handleMint}
-            isMinting={isMinting}
-            onMenuToggle={handleMenuToggle}
-            onAddressChange={setMiniKitAddressAsync}
-            session={session}
-          />
-        )}
-      </div>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
+          {!session || (session && !ownedNFT) ? (
+            <PreMinting
+              handleMint={handleMint}
+              isMinting={isMinting}
+              onMenuToggle={handleMenuToggle}
+              onAddressChange={setMiniKitAddress}
+            />
+          ) : (
+            <ReturnMinting 
+              onViewYours={handleViewYours}
+              onMenuToggle={handleMenuToggle}
+              setMiniKitAddress={setMiniKitAddress}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

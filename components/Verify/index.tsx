@@ -8,11 +8,11 @@ import {
 } from "@worldcoin/minikit-js";
 import { useEffect, useState } from "react";
 import { createPublicClient, http, Chain } from "viem";
-import { worldChainSepolia } from "../WorldChainViemClient";
+import { worldChainMainnet } from "../WorldChainViemClient";
 
 
 
-const contractAddress = "0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D";
+const contractAddress = "0xb03d978ac6a5b7d565431ef71b80b4191419a627";
 
 
 export type VerifyCommandInput = {
@@ -22,7 +22,7 @@ export type VerifyCommandInput = {
 };
 
 const verifyPayload: VerifyCommandInput = {
-  action: "mint2",
+  action: "mint3",
   signal: "",
   verification_level: VerificationLevel.Device,
 };
@@ -241,7 +241,7 @@ export const VerifyBlock = ({
 
       // Wait for the transaction to be mined
       const publicClient = createPublicClient({
-        chain: worldChainSepolia,
+        chain: worldChainMainnet,
         transport: http(),
       });
       const receipt = await publicClient.waitForTransactionReceipt({

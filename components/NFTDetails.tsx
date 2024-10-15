@@ -13,7 +13,7 @@ interface NFTDetailsProps {
 }
 
 export const NFTDetails: React.FC<NFTDetailsProps> = ({ handleClose, handleShare, nft }) => {
-const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
   return (
     <>
       <button
@@ -52,7 +52,7 @@ const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
           Share on X
         </button>
         <a
-          href={`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${nft.tokenId}`}
+          href={`https://worldchain-mainnet.explorer.alchemy.com/token/${contractAddress}/instance/${nft.tokenId}`}
           target="_blank"
           rel="noopener noreferrer"
           className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"

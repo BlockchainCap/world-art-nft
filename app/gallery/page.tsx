@@ -5,17 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPublicClient, http, Chain } from "viem";
 import { worldartABI } from "../../contracts/worldartABI";
 import { HamburgerMenu } from "../../components/HamburgerMenu";
-import { worldChainSepolia } from "@/components/WorldChainViemClient";
+import { worldChainMainnet } from "@/components/WorldChainViemClient";
 
 
-const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
 interface NFT {
   id: number;
   name: string;
-  image: string;
-  tokenId: string;
+  artist: string;
+  description: string;
   tokenURI: string;
+  tokenId: string;
 }
 
 export default function Gallery() {
@@ -28,7 +29,7 @@ export default function Gallery() {
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
-        chain: worldChainSepolia,
+        chain: worldChainMainnet,
         transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
       });
       setClient(newClient);
@@ -71,22 +72,22 @@ export default function Gallery() {
     if (!client) return null;
 
     try {
-      const tokenURI = await client.readContract({
+      const tokenURIData = await client.readContract({
         address: contractAddress as `0x${string}`,
         abi: worldartABI,
         functionName: 'tokenURI',
         args: [BigInt(tokenId)],
       }) as string;
 
-      console.log(`Token ${tokenId} URI:`, tokenURI);
+      const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
 
-      // Instead of fetching metadata, we'll use the tokenURI directly
       return {
         id: tokenId,
         name: `Unique Human #${tokenId}`,
-        image: tokenURI, // Use tokenURI as the image source
+        artist: decodedData.artist,
+        description: decodedData.description,
+        tokenURI: decodedData.image,
         tokenId: tokenId.toString(),
-        tokenURI: tokenURI,
       };
     } catch (error) {
       console.error(`Error fetching NFT data for token ${tokenId}:`, error);
@@ -98,9 +99,10 @@ export default function Gallery() {
     return {
       id: tokenId,
       name: `Unique Human #${tokenId}`,
-      image: '/circle.jpg',
+      artist: 'Unknown',
+      description: 'Error fetching metadata',
+      tokenURI: '/circle.jpg',
       tokenId: tokenId.toString(),
-      tokenURI: tokenURI,
     };
   }
 
@@ -215,7 +217,7 @@ export default function Gallery() {
               <div className="mt-6 text-center">
                 <h2 className="text-2xl text-center text-white font-medium mb-8">{selectedNFT.name}</h2>
                 <a
-                  href={`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${selectedNFT.tokenId}`}
+                  href={`https://worldchain-mainnet.explorer.alchemy.com/token/${contractAddress}/instance/${selectedNFT.tokenId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-8 py-4 font-twk-lausanne font-medium bg-white text-black rounded-full hover:bg-gray-200 transition-colors duration-300"

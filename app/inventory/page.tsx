@@ -8,17 +8,18 @@ import { worldartABI } from "../../contracts/worldartABI";
 import { MiniKit, ResponseEvent, MiniAppWalletAuthPayload } from "@worldcoin/minikit-js";
 import { HamburgerMenu } from "../../components/HamburgerMenu";
 import { NFTDetails } from "../../components/NFTDetails";
-import { worldChainSepolia } from "@/components/WorldChainViemClient";
+import { worldChainMainnet } from "@/components/WorldChainViemClient";
+import { useSearchParams } from 'next/navigation';
 
-
-const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
 interface NFT {
   id: number;
   name: string;
-  image: string;
-  tokenId: string;
+  artist: string;
+  description: string;
   tokenURI: string;
+  tokenId: string;
 }
 
 export default function MyNFTs() {
@@ -29,12 +30,14 @@ export default function MyNFTs() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [viewMinted, setViewMinted] = useState(false);
 
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
-        chain: worldChainSepolia,
+        chain: worldChainMainnet,
         transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
       });
       setClient(newClient);
@@ -51,6 +54,26 @@ export default function MyNFTs() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const viewMintedParam = searchParams.get('viewMinted');
+    const addressParam = searchParams.get('address');
+    
+    if (viewMintedParam === 'true') {
+      setViewMinted(true);
+      const justMintedNFTString = localStorage.getItem('justMintedNFT');
+      if (justMintedNFTString) {
+        const justMintedNFT = JSON.parse(justMintedNFTString);
+        setNfts(prevNfts => [justMintedNFT, ...prevNfts]);
+        setSelectedNFT(justMintedNFT);
+        localStorage.removeItem('justMintedNFT');
+      }
+    }
+
+    if (addressParam) {
+      setMiniKitAddress(addressParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (client && miniKitAddress) {
@@ -91,7 +114,7 @@ export default function MyNFTs() {
     }
   }, [miniKitAddress]);
 
-  async function fetchOwnedNFTs() {
+  const fetchOwnedNFTs = useCallback(async () => {
     if (!client || !miniKitAddress) return;
 
     try {
@@ -114,25 +137,28 @@ export default function MyNFTs() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [client, miniKitAddress]);
 
   async function fetchNFTData(tokenId: number): Promise<NFT | null> {
     if (!client) return null;
 
     try {
-      const tokenURI = await client.readContract({
+      const tokenURIData = await client.readContract({
         address: contractAddress as `0x${string}`,
         abi: worldartABI,
         functionName: 'tokenURI',
         args: [BigInt(tokenId)],
       }) as string;
 
+      const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
+
       return {
         id: tokenId,
         name: `Unique Human #${tokenId}`,
-        image: tokenURI,
+        artist: decodedData.artist,
+        description: decodedData.description,
+        tokenURI: decodedData.image,
         tokenId: tokenId.toString(),
-        tokenURI: tokenURI,
       };
     } catch (error) {
       console.error(`Error fetching NFT data for token ${tokenId}:`, error);
@@ -168,15 +194,19 @@ export default function MyNFTs() {
         </svg>
       </button>
       
-      {selectedNFT ? (
+      {selectedNFT || (viewMinted && nfts.length > 0) ? (
         <NFTDetails
-          handleClose={() => setSelectedNFT(null)}
+          handleClose={() => {
+            setSelectedNFT(null);
+            setViewMinted(false);
+          }}
           handleShare={() => {
-            const tweetText = encodeURIComponent(`Check out my ${selectedNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
-            const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${selectedNFT.tokenId}`);
+            const nft = selectedNFT || nfts[nfts.length - 1];
+            const tweetText = encodeURIComponent(`Check out my ${nft.name} edition from World Art! #UniqueHumans #WorldArt`);
+            const tweetUrl = encodeURIComponent(`https://worldchain-mainnet.explorer.alchemy.com/token/${contractAddress}/instance/${nft.tokenId}`);
             window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
           }}
-          nft={selectedNFT}
+          nft={selectedNFT || nfts[nfts.length - 1]}
         />
       ) : (
         <>

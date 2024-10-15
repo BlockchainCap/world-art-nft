@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { worldartABI } from '../../../contracts/worldartABI';
-import { worldChainSepolia } from '@/components/WorldChainViemClient';
+import { worldChainMainnet } from '@/components/WorldChainViemClient';
 
 
-const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
 
     const client = createWalletClient({
-      chain: worldChainSepolia,
+      chain: worldChainMainnet,
       transport: http()
     });
 
