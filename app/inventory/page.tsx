@@ -10,6 +10,7 @@ import { HamburgerMenu } from "../../components/HamburgerMenu";
 import { NFTDetails } from "../../components/NFTDetails";
 import { worldChainMainnet } from "@/components/WorldChainViemClient";
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
@@ -31,6 +32,7 @@ export default function MyNFTs() {
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [viewMinted, setViewMinted] = useState(false);
+  const router = useRouter();
 
   const searchParams = useSearchParams();
 
@@ -170,6 +172,10 @@ export default function MyNFTs() {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleBackToHome = () => {
+    router.push('/');
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen px-4">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -197,8 +203,7 @@ export default function MyNFTs() {
       {selectedNFT || (viewMinted && nfts.length > 0) ? (
         <NFTDetails
           handleClose={() => {
-            setSelectedNFT(null);
-            setViewMinted(false);
+            router.push('/');
           }}
           handleShare={() => {
             const nft = selectedNFT || nfts[nfts.length - 1];
