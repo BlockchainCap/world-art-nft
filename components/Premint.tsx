@@ -11,10 +11,10 @@ import { worldartABI } from "@/contracts/worldartABI";
 
 interface PreMintingProps {
   handleMint: (nullifierHash: string) => Promise<string | null>;
-
   isMinting: boolean;
   onMenuToggle: () => void;
-  onAddressChange: (address: string) => void;
+  onAddressChange: (address: string | null) => void;
+  session: any;
 }
 
 export const PreMinting: React.FC<PreMintingProps> = ({
@@ -22,8 +22,8 @@ export const PreMinting: React.FC<PreMintingProps> = ({
   isMinting,
   onMenuToggle,
   onAddressChange,
+  session
 }) => {
-  const { data: session } = useSession();
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
   const [totalSupply, setTotalSupply] = useState<number | null>(null);
 
@@ -52,6 +52,10 @@ export const PreMinting: React.FC<PreMintingProps> = ({
     fetchTotalSupply();
   }, []);
 
+  const handleAddressChange = (address: string | null) => {
+    setMiniKitAddress(address);
+    onAddressChange(address);
+  };
 
   return (
     <>
@@ -105,7 +109,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           <p className="text-md font-semibold text-center text-custom-black mb-4">
             Qian Qian + Spongenuity
           </p>
-          <SignIn onAddressChange={setMiniKitAddress} />
+          <SignIn onAddressChange={handleAddressChange} />
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
@@ -150,13 +154,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
       {session && !miniKitAddress && (
         <div className="flex flex-col items-start justify-start mt-[40vh] h-screen">
-          <WalletSignIn onAddressChange={(address) => { 
-            if (address !== null) {
-              setMiniKitAddress(address);
-              onAddressChange(address);
-            }
-          }} />
-
+          <WalletSignIn onAddressChange={handleAddressChange} />
         </div>
       )}
 
@@ -167,7 +165,6 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             onVerificationSuccess={async (nullifierHash) => {
               return handleMint(nullifierHash);
             }}
-
             isMinting={isMinting}
           />
         </div>

@@ -37,8 +37,7 @@ export default function Home() {
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isMinted, setIsMinted] = useState(false);
-  const [hasMintedBefore, setHasMintedBefore] = useState(false);
-  const [viewingMinted, setViewingMinted] = useState(false);
+  const [showNFTDetails, setShowNFTDetails] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
@@ -51,10 +50,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (client && miniKitAddress) {
+    if (client && miniKitAddress && session) {
       checkOwnedNFTs();
     }
-  }, [client, miniKitAddress]);
+  }, [client, miniKitAddress, session]);
 
   const checkOwnedNFTs = async () => {
     if (!client || !miniKitAddress) return;
@@ -113,8 +112,6 @@ export default function Home() {
         setImageUrl(data.result.s3_url);
         setIsMinting(false);
         setIsMinted(true);
-        setHasMintedBefore(true);
-        localStorage.setItem('hasMinted', 'true');
         return data.result.s3_url;
       } else if (data.status === "Processing") {
         console.log(`Task ${taskId} still processing. Returning null.`);
@@ -134,7 +131,6 @@ export default function Home() {
   }, []);
 
   const handleMint = async (nullifierHash: string): Promise<string | null> => {
-
     setIsMinting(true);
     console.log(`Initiating minting process with nullifier hash: ${nullifierHash}`);
 
@@ -189,14 +185,14 @@ export default function Home() {
       setIsMinting(false);
       return null;
     }
+    // After successful minting:
+    setShowNFTDetails(true);
+    return imageUrl;
   };
 
   const handleClose = () => {
-    setHasMintedBefore(true);
-    setViewingMinted(false);
+    setShowNFTDetails(false);
   };
-
-
 
   const handleShare = () => {
     const tweetText = encodeURIComponent(`Check out my ${ownedNFT?.name || 'Unique Human'} edition from World Art! #UniqueHumans #WorldArt`);
@@ -204,24 +200,9 @@ export default function Home() {
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
   };
 
-  const handleViewYours = () => {
-    setViewingMinted(true);
-  };
-
   const handleMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewMinted = urlParams.get('viewMinted');
-    if (viewMinted === 'true') {
-      setViewingMinted(true);
-      // Clear the URL parameter
-      // window.history.replaceState({}, document.title, window.location.pathname);
-      // setIsMinted(true);
-    }
-  }, []);
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4 relative">
@@ -251,18 +232,17 @@ export default function Home() {
       )}
 
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        {
-        !miniKitAddress ? (
-          <ReturnMinting 
-            onViewYours={handleViewYours}
-            onMenuToggle={handleMenuToggle}
-            setMiniKitAddress={setMiniKitAddress}
-          />
-        ) : ownedNFT ? (
+        {showNFTDetails && ownedNFT ? (
           <NFTDetails
-            handleClose={() => setOwnedNFT(null)}
+            handleClose={handleClose}
             handleShare={handleShare}
             nft={ownedNFT}
+          />
+        ) : ownedNFT ? (
+          <ReturnMinting 
+            onViewYours={() => setShowNFTDetails(true)}
+            onMenuToggle={handleMenuToggle}
+            setMiniKitAddress={setMiniKitAddress}
           />
         ) : (
           <PreMinting
@@ -270,6 +250,7 @@ export default function Home() {
             isMinting={isMinting}
             onMenuToggle={handleMenuToggle}
             onAddressChange={setMiniKitAddress}
+            session={session}
           />
         )}
       </div>
