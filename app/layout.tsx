@@ -22,7 +22,7 @@ export default function RootLayout({
           {/* <ErudaProvider> */}
             <MiniKitProvider>
               <div className="flex flex-col min-h-screen">
-                <main className="flex-1 my-[6vh] pt-[1vh]">{children}</main>
+                <main className="flex-1 mt-[6vh] mb-[4vh] pt-[1vh]">{children}</main>
               </div>
             </MiniKitProvider>
           {/* </ErudaProvider> */}

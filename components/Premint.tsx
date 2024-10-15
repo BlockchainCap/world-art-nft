@@ -150,7 +150,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           <SignIn onAddressChange={setMiniKitAddress} />
         
 
-          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
+          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-2">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
 
           </div>
@@ -158,7 +158,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-          <p className="text-md font-extralight text-center text-custom-black mt-4 max-w-xl px-4 ">
+          <p className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
             Unique Humans is a generative portrait collection inspired by
             anonymous proof of human online. Using generative AI and coding,
             unique abstract portrait images are generated on World Chain for a
@@ -166,7 +166,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           </p>
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black mt-2">
+          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black mt-1">
             <span className="font-extralight">Follow Qian Qian</span>{" "}
             <a
               href="https://www.instagram.com/q2gram"
@@ -189,6 +189,14 @@ export const PreMinting: React.FC<PreMintingProps> = ({
               @spongenuity
             </a>
           </div>
+          <hr className="w-11/12 max-w-md mt-4 border-t border-custom-white my-4 mx-8" />
+
+          <p className="text-xs font-extralight text-center text-gray-400 mt-2 max-w-xl px-4 ">
+          No user or personal data is used to generate the portrait.
+       </p>
+       <p className="text-xs font-extralight text-center text-gray-400 mt-3 max-w-xl px-4 ">
+          Developed by <a href="https://x.com/zile_cao" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@zile_cao</a> | <a href="https://x.com/blockchaincap" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@blockchaincap</a> 
+       </p>
         </>
       )}
 

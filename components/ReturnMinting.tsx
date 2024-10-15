@@ -237,7 +237,12 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
        <p className="text-xs font-extralight text-center text-gray-400 mt-2 max-w-xl px-4 ">
-       No user or personal data is used to generate the portrait.
+          No user or personal data is used to generate the portrait.
+       </p>
+
+
+       <p className="text-xs font-extralight text-center text-gray-400 mt-3 max-w-xl px-4 ">
+          Developed by <a href="https://x.com/zile_cao" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@zile_cao</a> | <a href="https://x.com/blockchaincap" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@blockchaincap</a> 
        </p>
 
     </>
