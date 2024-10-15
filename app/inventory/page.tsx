@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { createPublicClient, http, Chain } from "viem";
@@ -8,20 +8,22 @@ import { worldartABI } from "../../contracts/worldartABI";
 import { MiniKit, ResponseEvent, MiniAppWalletAuthPayload } from "@worldcoin/minikit-js";
 import { HamburgerMenu } from "../../components/HamburgerMenu";
 import { NFTDetails } from "../../components/NFTDetails";
-import { worldChainSepolia } from "@/components/WorldChainViemClient";
+import { worldChainMainnet } from "@/components/WorldChainViemClient";
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-
-const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
+const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
 
 interface NFT {
   id: number;
   name: string;
-  image: string;
-  tokenId: string;
+  artist: string;
+  description: string;
   tokenURI: string;
+  tokenId: string;
 }
 
-export default function MyNFTs() {
+function MyNFTsContent() {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
@@ -29,15 +31,24 @@ export default function MyNFTs() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [viewMinted, setViewMinted] = useState(false);
+  const router = useRouter();
 
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
-        chain: worldChainSepolia,
+        chain: worldChainMainnet,
         transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
       });
       setClient(newClient);
+
+      // Check for stored wallet address
+      const storedAddress = localStorage.getItem('walletAddress');
+      if (storedAddress) {
+        setMiniKitAddress(storedAddress);
+      }
     }
 
     // Set up MiniKit subscription for wallet auth
@@ -53,14 +64,37 @@ export default function MyNFTs() {
   }, []);
 
   useEffect(() => {
+    const viewMintedParam = searchParams.get('viewMinted');
+    const addressParam = searchParams.get('address');
+    
+    if (viewMintedParam === 'true') {
+      setViewMinted(true);
+      const justMintedNFTString = localStorage.getItem('justMintedNFT');
+      if (justMintedNFTString) {
+        const justMintedNFT = JSON.parse(justMintedNFTString);
+        setNfts(prevNfts => [justMintedNFT, ...prevNfts]);
+        setSelectedNFT(justMintedNFT);
+        localStorage.removeItem('justMintedNFT');
+      }
+    }
+
+    if (addressParam) {
+      setMiniKitAddress(addressParam);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (client && miniKitAddress) {
       fetchOwnedNFTs();
+    } else if (client && !miniKitAddress && MiniKit.isInstalled()) {
+      triggerWalletAuth();
     }
   }, [client, miniKitAddress]);
 
   const handleWalletAuth = (response: MiniAppWalletAuthPayload) => {
     if (response.status === 'success') {
       setMiniKitAddress(response.address);
+      localStorage.setItem('walletAddress', response.address);
     } else {
       console.error('Wallet auth failed:', response);
     }
@@ -91,7 +125,7 @@ export default function MyNFTs() {
     }
   }, [miniKitAddress]);
 
-  async function fetchOwnedNFTs() {
+  const fetchOwnedNFTs = useCallback(async () => {
     if (!client || !miniKitAddress) return;
 
     try {
@@ -114,25 +148,28 @@ export default function MyNFTs() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [client, miniKitAddress]);
 
   async function fetchNFTData(tokenId: number): Promise<NFT | null> {
     if (!client) return null;
 
     try {
-      const tokenURI = await client.readContract({
+      const tokenURIData = await client.readContract({
         address: contractAddress as `0x${string}`,
         abi: worldartABI,
         functionName: 'tokenURI',
         args: [BigInt(tokenId)],
       }) as string;
 
+      const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
+
       return {
         id: tokenId,
         name: `Unique Human #${tokenId}`,
-        image: tokenURI,
+        artist: decodedData.artist,
+        description: decodedData.description,
+        tokenURI: decodedData.image,
         tokenId: tokenId.toString(),
-        tokenURI: tokenURI,
       };
     } catch (error) {
       console.error(`Error fetching NFT data for token ${tokenId}:`, error);
@@ -142,6 +179,10 @@ export default function MyNFTs() {
 
   const handleMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleBackToHome = () => {
+    router.push('/');
   };
 
   return (
@@ -168,15 +209,18 @@ export default function MyNFTs() {
         </svg>
       </button>
       
-      {selectedNFT ? (
+      {selectedNFT || (viewMinted && nfts.length > 0) ? (
         <NFTDetails
-          handleClose={() => setSelectedNFT(null)}
+          handleClose={() => {
+            router.push('/');
+          }}
           handleShare={() => {
-            const tweetText = encodeURIComponent(`Check out my ${selectedNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
-            const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/${contractAddress}/instance/${selectedNFT.tokenId}`);
+            const nft = selectedNFT || nfts[nfts.length - 1];
+            const tweetText = encodeURIComponent(`Check out my ${nft.name} edition from World Art! #UniqueHumans #WorldArt`);
+            const tweetUrl = encodeURIComponent(`https://worldchain-mainnet.explorer.alchemy.com/token/${contractAddress}/instance/${nft.tokenId}`);
             window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
           }}
-          nft={selectedNFT}
+          nft={selectedNFT || nfts[nfts.length - 1]}
         />
       ) : (
         <>
@@ -190,14 +234,7 @@ export default function MyNFTs() {
 
           <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
 
-          {!miniKitAddress ? (
-            <button
-              onClick={triggerWalletAuth}
-              className="px-16 py-4 mt-[25vh] rounded-full text-md font-medium bg-black text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mb-4"
-            >
-              Load Collected Items
-            </button>
-          ) : (
+          {miniKitAddress && (
             <div className="flex items-center mb-6">
               <p className="text-md font-extralight text-center text-custom-black mr-2">
                 Address: <code className="break-all font-twk-lausanne">{`${miniKitAddress.slice(0, 6)}...${miniKitAddress.slice(-4)}`}</code>
@@ -241,5 +278,13 @@ export default function MyNFTs() {
         </>
       )}
     </div>
+  );
+}
+
+export default function MyNFTs() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MyNFTsContent />
+    </Suspense>
   );
 }

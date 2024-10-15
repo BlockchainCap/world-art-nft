@@ -6,10 +6,18 @@ import { MiniKit, ResponseEvent, MiniAppWalletAuthPayload, MiniAppWalletAuthSucc
 export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: string | null) => void }) => {
   const { data: session } = useSession();
   const [nonce, setNonce] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   
   const buttonStyle = "px-12 py-4 rounded-full text-md font-medium my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black";
   
   useEffect(() => {
+    // Check for stored wallet address
+    const storedAddress = localStorage.getItem('walletAddress');
+    if (storedAddress) {
+      setWalletAddress(storedAddress);
+      onAddressChange(storedAddress);
+    }
+
     if (!MiniKit.isInstalled()) return;
 
     const handleWalletAuthResponse = async (payload: MiniAppWalletAuthPayload) => {
@@ -38,6 +46,8 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
             const miniKitAddress = MiniKit.walletAddress;
             console.log("MiniKit wallet address:", miniKitAddress);
             if (miniKitAddress) {
+              setWalletAddress(miniKitAddress);
+              localStorage.setItem('walletAddress', miniKitAddress);
               onAddressChange(miniKitAddress);
             } else {
               console.error("MiniKit wallet address is undefined");
@@ -55,11 +65,8 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
 
     MiniKit.subscribe(ResponseEvent.MiniAppWalletAuth, handleWalletAuthResponse);
 
-    return () => {
-      MiniKit.unsubscribe(ResponseEvent.MiniAppWalletAuth);
-    };
+    // We're not returning an unsubscribe function anymore
   }, [nonce, onAddressChange]);
-
 
   const handleWalletSignIn = async () => {
     try {
@@ -81,7 +88,7 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
 
   return (
     <div className="flex flex-col items-center">
-      {session ? (
+      {session && !walletAddress ? (
         <div>
          <button 
             onClick={handleWalletSignIn} 
@@ -90,11 +97,7 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
             Sign in with Wallet
           </button>
         </div>
-      ) : (
-        <>
-
-        </>
-      )}
+      ) : null}
     </div>
   );
 };

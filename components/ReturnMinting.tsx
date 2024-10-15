@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useSession } from "next-auth/react";
 import { SignIn } from "./SignIn";
 import { createPublicClient, http } from "viem";
-import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldChainMainnet } from "./WorldChainViemClient";
 import { worldartABI } from "@/contracts/worldartABI";
 import { NFTDetails } from "./NFTDetails";
 
@@ -27,13 +27,13 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
     const fetchTotalSupply = async () => {
       if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
         const client = createPublicClient({
-          chain: worldChainSepolia,
+          chain: worldChainMainnet,
           transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
         });
 
         try {
           const supply = await client.readContract({
-            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            address: '0xb03d978ac6a5b7d565431ef71b80b4191419a627' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -58,9 +58,49 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
   const handleShare = () => {
     if (userNFT) {
       const tweetText = encodeURIComponent(`Check out my ${userNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
-      const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5/instance/${userNFT.tokenId}`);
+      const tweetUrl = encodeURIComponent(`https://worldchain-mainnet.explorer.alchemy.com/token/0xb03d978ac6a5b7d565431ef71b80b4191419a627/instance/${userNFT.tokenId}`);
       window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
     }
+  };
+
+  const CountdownTimer: React.FC<{ targetDate: number }> = ({ targetDate }) => {
+    const [timeLeft, setTimeLeft] = useState<string>("");
+  
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+  
+        if (distance < 0) {
+          clearInterval(timer);
+          setTimeLeft("expired");
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  
+          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [targetDate]);
+  
+    if (timeLeft === "expired") {
+      return (
+        <div className="text-red-500 font-semibold text-center my-4">
+          The claim window for this collection has closed.
+        </div>
+      );
+    }
+  
+    return (
+      <div className="text-center my-2">
+        <p className="font-semibold">Time left to claim:</p>
+        <p>{timeLeft}</p>
+      </div>
+    );
   };
 
   return (
@@ -115,7 +155,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
       <p className="text-md font-extralight text-center text-custom-black">
         A collaboration with digital artists
       </p>
-      <p className="text-md font-semibold text-center text-custom-black mb-4">
+      <p className="text-md font-semibold text-center text-custom-black mb-2">
         Qian Qian + Spongenuity
       </p>
 
@@ -125,7 +165,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
         Thank you for being part of the collection. 
       </p> */}
 
-     {session ? (
+     
        <>
          {showNFTDetails && userNFT ? (
            <NFTDetails
@@ -137,7 +177,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
            <>
              <Link
                href="/inventory"
-               className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block"
+               className="w-64 px-4 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block text-center"
              >
                View Your Edition
              </Link>
@@ -146,24 +186,20 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
                href="/gallery" 
                target="_blank"
                rel="noopener noreferrer"
-               className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"
+               className="w-64 px-4 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4 inline-block text-center"
              >
                View Collection Gallery
              </a>
            </>
          )}
        </>
-     ) : (
-       <SignIn onAddressChange={(address: string | null) => {
-         if (address !== null) {
-           setMiniKitAddress(address);
-         }
-       }} />
-     )}
+     
 
-<div className="flex items-center my-4 justify-center text-md font-extralight text-center text-custom-black ">
+<div className="flex items-center mb-2 mt-4 justify-center text-md font-extralight text-center text-custom-black ">
       <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
       </div>
+
+      <CountdownTimer targetDate={1729828799000} />
       <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
        <p className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
@@ -201,7 +237,12 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
        <p className="text-xs font-extralight text-center text-gray-400 mt-2 max-w-xl px-4 ">
-       No user or personal data is used to generate the portrait.
+          No user or personal data is used to generate the portrait.
+       </p>
+
+
+       <p className="text-xs font-extralight text-center text-gray-400 mt-3 max-w-xl px-4 ">
+          Developed by <a href="https://x.com/zile_cao" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@zile_cao</a> | <a href="https://x.com/blockchaincap" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@blockchaincap</a> 
        </p>
 
     </>

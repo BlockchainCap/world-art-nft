@@ -6,9 +6,9 @@ import { VerifyBlock } from "@/components/Verify";
 import { useState, useEffect } from "react";
 import { WalletSignIn } from "@/components/Wallet";
 import { createPublicClient, http } from "viem";
-import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldChainMainnet } from "./WorldChainViemClient";
 import { worldartABI } from "@/contracts/worldartABI"; 
-
+import Link from "next/link";
 interface PreMintingProps {
   handleMint: (nullifierHash: string) => Promise<string | null>;
 
@@ -26,18 +26,20 @@ export const PreMinting: React.FC<PreMintingProps> = ({
   const { data: session } = useSession();
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
   const [totalSupply, setTotalSupply] = useState<number | null>(null);
+  const buttonStyle = "px-12 py-4 rounded-full text-md font-medium my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black";
+
 
   useEffect(() => {
     const fetchTotalSupply = async () => {
       if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
         const client = createPublicClient({
-          chain: worldChainSepolia,
+          chain: worldChainMainnet,
           transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
         });
 
         try {
           const supply = await client.readContract({
-            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            address: '0xb03d978ac6a5b7d565431ef71b80b4191419a627' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -51,6 +53,46 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
     fetchTotalSupply();
   }, []);
+
+  const CountdownTimer: React.FC<{ targetDate: number }> = ({ targetDate }) => {
+    const [timeLeft, setTimeLeft] = useState<string>("");
+  
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+  
+        if (distance < 0) {
+          clearInterval(timer);
+          setTimeLeft("expired");
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  
+          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [targetDate]);
+  
+    if (timeLeft === "expired") {
+      return (
+        <div className="text-red-500 font-semibold text-center my-4">
+          The claim window for this collection has closed.
+        </div>
+      );
+    }
+  
+    return (
+      <div className="text-center my-4">
+        <p className="font-semibold">Time left to claim: </p>
+        <p>{timeLeft}</p>
+      </div>
+    );
+  };
 
 
   return (
@@ -106,15 +148,17 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             Qian Qian + Spongenuity
           </p>
           <SignIn onAddressChange={setMiniKitAddress} />
+        
 
-          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
+          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-2">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
 
           </div>
+          <CountdownTimer targetDate={1729828799000} />
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-          <p className="text-md font-extralight text-center text-custom-black mt-4 max-w-xl px-4 ">
+          <p className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
             Unique Humans is a generative portrait collection inspired by
             anonymous proof of human online. Using generative AI and coding,
             unique abstract portrait images are generated on World Chain for a
@@ -122,7 +166,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           </p>
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black mt-2">
+          <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black mt-1">
             <span className="font-extralight">Follow Qian Qian</span>{" "}
             <a
               href="https://www.instagram.com/q2gram"
@@ -145,6 +189,14 @@ export const PreMinting: React.FC<PreMintingProps> = ({
               @spongenuity
             </a>
           </div>
+          <hr className="w-11/12 max-w-md mt-4 border-t border-custom-white my-4 mx-8" />
+
+          <p className="text-xs font-extralight text-center text-gray-400 mt-2 max-w-xl px-4 ">
+          No user or personal data is used to generate the portrait.
+       </p>
+       <p className="text-xs font-extralight text-center text-gray-400 mt-3 max-w-xl px-4 ">
+          Developed by <a href="https://x.com/zile_cao" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@zile_cao</a> | <a href="https://x.com/blockchaincap" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@blockchaincap</a> 
+       </p>
         </>
       )}
 
