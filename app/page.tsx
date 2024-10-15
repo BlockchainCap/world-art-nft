@@ -204,6 +204,13 @@ export default function Home() {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const setMiniKitAddressAsync = async (address: string | null) => {
+    setMiniKitAddress(address);
+    if (address) {
+      await checkOwnedNFTs();
+    }
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen px-4 relative">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -249,7 +256,7 @@ export default function Home() {
             handleMint={handleMint}
             isMinting={isMinting}
             onMenuToggle={handleMenuToggle}
-            onAddressChange={setMiniKitAddress}
+            onAddressChange={setMiniKitAddressAsync}
             session={session}
           />
         )}

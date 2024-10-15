@@ -26,6 +26,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 }) => {
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
   const [totalSupply, setTotalSupply] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchTotalSupply = async () => {
@@ -52,9 +53,11 @@ export const PreMinting: React.FC<PreMintingProps> = ({
     fetchTotalSupply();
   }, []);
 
-  const handleAddressChange = (address: string | null) => {
+  const handleAddressChange = async (address: string | null) => {
+    setIsLoading(true);
     setMiniKitAddress(address);
-    onAddressChange(address);
+    await onAddressChange(address);
+    setIsLoading(false);
   };
 
   return (
@@ -152,13 +155,13 @@ export const PreMinting: React.FC<PreMintingProps> = ({
         </>
       )}
 
-      {session && !miniKitAddress && (
+      {session && !miniKitAddress && !isLoading && (
         <div className="flex flex-col items-start justify-start mt-[40vh] h-screen">
           <WalletSignIn onAddressChange={handleAddressChange} />
         </div>
       )}
 
-      {session && miniKitAddress && (
+      {session && miniKitAddress && !isLoading && (
         <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
           <VerifyBlock 
             miniKitAddress={miniKitAddress} 
@@ -167,6 +170,12 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             }}
             isMinting={isMinting}
           />
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
+          <p>Loading...</p>
         </div>
       )}
     </>
