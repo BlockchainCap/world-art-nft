@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { createPublicClient, http, Chain } from "viem";
@@ -23,7 +23,7 @@ interface NFT {
   tokenId: string;
 }
 
-export default function MyNFTs() {
+function MyNFTsContent() {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
@@ -276,5 +276,13 @@ export default function MyNFTs() {
         </>
       )}
     </div>
+  );
+}
+
+export default function MyNFTs() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MyNFTsContent />
+    </Suspense>
   );
 }
