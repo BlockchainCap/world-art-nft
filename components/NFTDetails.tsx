@@ -13,7 +13,7 @@ interface NFTDetailsProps {
 }
 
 export const NFTDetails: React.FC<NFTDetailsProps> = ({ handleClose, handleShare, nft }) => {
-const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
+const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
   return (
     <>
       <button

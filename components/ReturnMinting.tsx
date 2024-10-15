@@ -33,7 +33,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
 
         try {
           const supply = await client.readContract({
-            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            address: '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -58,7 +58,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
   const handleShare = () => {
     if (userNFT) {
       const tweetText = encodeURIComponent(`Check out my ${userNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
-      const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5/instance/${userNFT.tokenId}`);
+      const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D/instance/${userNFT.tokenId}`);
       window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
     }
   };

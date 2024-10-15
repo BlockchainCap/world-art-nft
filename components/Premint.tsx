@@ -38,7 +38,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
         try {
           const supply = await client.readContract({
-            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            address: '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D' as `0x${string}`,
             abi: worldartABI,
             functionName: 'totalSupply',
           }) as bigint;
@@ -59,6 +59,47 @@ export const PreMinting: React.FC<PreMintingProps> = ({
     await onAddressChange(address);
     setIsLoading(false);
   };
+
+  const CountdownTimer: React.FC<{ targetDate: number }> = ({ targetDate }) => {
+    const [timeLeft, setTimeLeft] = useState<string>("");
+  
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+  
+        if (distance < 0) {
+          clearInterval(timer);
+          setTimeLeft("expired");
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  
+          setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }
+      }, 1000);
+  
+      return () => clearInterval(timer);
+    }, [targetDate]);
+  
+    if (timeLeft === "expired") {
+      return (
+        <div className="text-red-500 font-semibold text-center my-4">
+          The claim window for this collection has closed.
+        </div>
+      );
+    }
+  
+    return (
+      <div className="text-center my-4">
+        <p className="font-semibold">Time left to claim:</p>
+        <p>{timeLeft}</p>
+      </div>
+    );
+  };
+  
 
   return (
     <>
@@ -116,8 +157,9 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
-
           </div>
+
+          <CountdownTimer targetDate={1729828799000} />
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
@@ -181,3 +223,4 @@ export const PreMinting: React.FC<PreMintingProps> = ({
     </>
   );
 };
+

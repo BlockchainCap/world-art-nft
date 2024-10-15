@@ -20,7 +20,7 @@ interface NFT {
 }
 
 
-const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
+const contractAddress = '0x4b8EF28b2e1A8F38e869E530E0AF5f9801a1A91D';
 
 type FetchOptions = {
   method: string;
@@ -56,7 +56,7 @@ export default function Home() {
   }, [client, miniKitAddress, session]);
 
   const checkOwnedNFTs = async () => {
-    if (!client || !miniKitAddress) return;
+    if (!client || !miniKitAddress) return null;
 
     try {
       const ownedTokens = await client.readContract({
@@ -75,17 +75,21 @@ export default function Home() {
           args: [BigInt(tokenId)],
         }) as string;
 
-        setOwnedNFT({
+        const newNFT = {
           id: tokenId,
           name: `Unique Human #${tokenId}`,
           image: tokenURI,
           tokenId: tokenId.toString(),
           tokenURI: tokenURI,
-        });
+        };
+
+        setOwnedNFT(newNFT);
+        return newNFT;
       }
     } catch (error) {
       console.error("Error checking owned NFTs:", error);
     }
+    return null;
   };
 
 
@@ -162,6 +166,13 @@ export default function Home() {
               const imageUrl = await checkStatus(data.task_id);
               if (imageUrl) {
                 setIsMinting(false);
+                setIsMinted(true);
+                // After successful minting:
+                const newNFT = await checkOwnedNFTs();
+                if (newNFT) {
+                  setOwnedNFT(newNFT);
+                  setShowNFTDetails(true);
+                }
                 resolve(imageUrl);
               } else {
                 setTimeout(checkImageStatus, 5000); // Check again after 5 seconds
@@ -185,9 +196,6 @@ export default function Home() {
       setIsMinting(false);
       return null;
     }
-    // After successful minting:
-    setShowNFTDetails(true);
-    return imageUrl;
   };
 
   const handleClose = () => {
