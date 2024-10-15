@@ -174,7 +174,7 @@ export const VerifyBlock = ({
   return (
     <div className="max-w-m mx-6 flex flex-col items-center">
       <button
-        className={`px-16 py-4 rounded-full text-md font-bold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
+        className={`px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
           isMinting 
             ? "bg-white text-black" 
             : "bg-black text-white border-white"
@@ -182,7 +182,7 @@ export const VerifyBlock = ({
         onClick={handleVerifyAndMint}
         disabled={isMinting}
       >
-        <span className="text-white">
+        <span className={isMinting ? "text-black" : "text-white"}>
           {isMinting ? "Verifying & Generating..." : "Generate Yours"}
         </span>
       </button>
