@@ -1,17 +1,68 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from 'framer-motion';
-
+import { useSession } from "next-auth/react";
+import { SignIn } from "./SignIn";
+import { createPublicClient, http } from "viem";
+import { worldChainSepolia } from "./WorldChainViemClient";
+import { worldartABI } from "@/contracts/worldartABI";
+import { NFTDetails } from "./NFTDetails";
 
 interface ReturnMintingProps {
   onViewYours: () => void;
-  onMenuToggle: () => void; // Add this prop for menu toggle functionality
+  onMenuToggle: () => void;
+  setMiniKitAddress: (address: string) => void;
 }
 
 export const ReturnMinting: React.FC<ReturnMintingProps> = ({
-  onViewYours,
   onMenuToggle,
+  setMiniKitAddress,
 }) => {
+  const { data: session } = useSession();
+  const [totalSupply, setTotalSupply] = useState<number | null>(null);
+  const [userNFT, setUserNFT] = useState<{ name: string; tokenURI: string; tokenId: string } | null>(null);
+  const [showNFTDetails, setShowNFTDetails] = useState(false);
+
+  useEffect(() => {
+    const fetchTotalSupply = async () => {
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
+        const client = createPublicClient({
+          chain: worldChainSepolia,
+          transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
+        });
+
+        try {
+          const supply = await client.readContract({
+            address: '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5' as `0x${string}`,
+            abi: worldartABI,
+            functionName: 'totalSupply',
+          }) as bigint;
+
+          setTotalSupply(Number(supply));
+        } catch (error) {
+          console.error("Error fetching total supply:", error);
+        }
+      }
+    };
+
+    fetchTotalSupply();
+  }, []);
+
+
+
+  const handleCloseNFTDetails = () => {
+    setShowNFTDetails(false);
+    setUserNFT(null);
+  };
+
+  const handleShare = () => {
+    if (userNFT) {
+      const tweetText = encodeURIComponent(`Check out my ${userNFT.name} edition from World Art! #UniqueHumans #WorldArt`);
+      const tweetUrl = encodeURIComponent(`https://worldchain-sepolia.explorer.alchemy.com/token/0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5/instance/${userNFT.tokenId}`);
+      window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}`, '_blank');
+    }
+  };
+
   return (
     <>
       <div className="w-full flex items-center justify-center relative mb-4">
@@ -41,19 +92,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
         </h1>
       </div>
 
-      {/* <p className="text-md font-extralight text-center text-custom-black mb-4 max-w-xl px-4 ">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua.
-      </p>
-      <Link
-        href="/inventory"
-        className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border mb-6 bg-white border-black text-black focus:ring-black"
-      >
-        Your Gallery
-      </Link> */}
-
-      {/* <hr className="w-11/12 max-w-md border-t border-custom-white mb-4 mt-2 mx-8" /> */}
-
+     
       <motion.div 
         className="w-full max-w-md mb-6 px-4"
         initial={{ opacity: 0 }}
@@ -80,32 +119,54 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
         Qian Qian + Spongenuity
       </p>
 
-      <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black ">
-        <span className="font-semibold mr-1">5555</span> unique collectors
-      </div>
+     
 
       {/* <p className="text-md font-extralight text-center text-custom-black mt-4 mb-2 max-w-xl px-4">
         Thank you for being part of the collection. 
       </p> */}
 
-      <button
-        onClick={onViewYours}
-        className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black"
-      >
-        View Your Edition
-      </button>
+     {session ? (
+       <>
+         {showNFTDetails && userNFT ? (
+           <NFTDetails
+             handleClose={handleCloseNFTDetails}
+             handleShare={handleShare}
+             nft={userNFT}
+           />
+         ) : (
+           <>
+             <Link
+               href="/inventory"
+               className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block"
+             >
+               View Your Edition
+             </Link>
 
-      <a
-          href="/collection/unique-humans" 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"
-        >
-          View Collection Gallery
-        </a>
+             <a
+               href="/gallery" 
+               target="_blank"
+               rel="noopener noreferrer"
+               className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"
+             >
+               View Collection Gallery
+             </a>
+           </>
+         )}
+       </>
+     ) : (
+       <SignIn onAddressChange={(address: string | null) => {
+         if (address !== null) {
+           setMiniKitAddress(address);
+         }
+       }} />
+     )}
+
+<div className="flex items-center my-4 justify-center text-md font-extralight text-center text-custom-black ">
+      <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
+      </div>
       <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-       <p className="text-md font-extralight text-center text-custom-black mt-4 max-w-xl px-4 ">
+       <p className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
          Unique Humans is a generative portrait collection inspired by
          anonymous proof of human online. Using generative AI and coding,
          unique abstract portrait images are generated on World Chain for a
@@ -113,7 +174,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        </p>
        <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
-       <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black mt-1">
+       <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black">
          <span className="font-extralight">Follow Qian Qian</span>{" "}
          <a
            href="https://www.instagram.com/q2gram"
@@ -143,32 +204,6 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        No user or personal data is used to generate the portrait.
        </p>
 
-
-      {/* <div className="w-full max-w-md my-4 px-4">
-        <img src="/cubes.jpg" className="w-full h-auto object-contain" />
-      </div>
-
-      <h2 className="text-2xl font-semibold text-center text-custom-black mb-4 mt-2">
-        New Drop
-      </h2>
-      <p className="text-md font-extralight text-center text-custom-black mb-2">
-        Featuring digital artist:
-      </p>
-      <p className="text-md font-semibold text-center text-custom-black mb-2">
-        Artist
-      </p>
-
-      <p className="text-md font-extralight text-center text-custom-black mb-2 max-w-md px-4">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua.
-      </p>
-
-      <button
-        onClick={() => {}}
-        className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-2 bg-white border-black text-black focus:ring-black mb-[8vh] active:bg-black active:text-white active:border-white"
-      >
-        Collect
-      </button> */}
     </>
   );
 };

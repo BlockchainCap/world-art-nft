@@ -78,4 +78,6 @@ button {
   height: 100%;
 }
 
-
+body.overflow-hidden {
+  overflow: hidden;
+}

@@ -5,31 +5,30 @@ import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract WorldArtNFT is ERC721A, Ownable {
-    string public immutable appId;
+
     uint256 public immutable endTime;
 
     mapping(uint256 => bool) public nullifierHashes;
     mapping(uint256 => string) private _tokenURIs;
 
     event TokenURIUpdated(uint256 indexed tokenId, string newUri);
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
 
     constructor(
         string memory _name,
         string memory _symbol,
         uint256 _endTime,
-        string memory _appId
-    ) ERC721A(_name, _symbol) {
+        address initialOwner
+    ) ERC721A(_name, _symbol) Ownable(initialOwner) {
         endTime = _endTime;
-        appId = _appId;
+
     }
 
     function mint(
         address to,
-        uint256 root,
         uint256 nullifierHash,
-        uint256[8] calldata proof,
-        string memory tokenURI
+        string memory _tokenURI
+
     ) public onlyOwner {
         require(block.timestamp <= endTime, "Minting period has ended");
         require(!nullifierHashes[nullifierHash], "Already minted");
@@ -41,7 +40,8 @@ contract WorldArtNFT is ERC721A, Ownable {
 
         uint256 tokenId = _nextTokenId();
         _mint(to, 1);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, _tokenURI);
+
     }
 
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal {
@@ -61,7 +61,22 @@ contract WorldArtNFT is ERC721A, Ownable {
 
     function transferContractOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0), "New owner is the zero address");
-        _transferOwnership(newOwner);
-        emit OwnershipTransferred(owner(), newOwner);
+        transferOwnership(newOwner);
+    }
+
+    function getOwnedTokens(address owner) public view returns (uint256[] memory) {
+        uint256 tokenCount = balanceOf(owner);
+        uint256[] memory result = new uint256[](tokenCount);
+        uint256 index = 0;
+        uint256 totalSupply = totalSupply();
+
+        for (uint256 tokenId = 0; tokenId < totalSupply; tokenId++) {
+            if (ownerOf(tokenId) == owner) {
+                result[index] = tokenId;
+                index++;
+            }
+        }
+        return result;
+
     }
 }
