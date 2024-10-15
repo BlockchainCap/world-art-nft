@@ -22,7 +22,7 @@ export type VerifyCommandInput = {
 };
 
 const verifyPayload: VerifyCommandInput = {
-  action: "mint",
+  action: "mint2",
   signal: "",
   verification_level: VerificationLevel.Device,
 };
