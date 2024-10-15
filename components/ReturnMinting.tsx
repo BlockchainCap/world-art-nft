@@ -96,7 +96,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
     }
   
     return (
-      <div className="text-center my-4">
+      <div className="text-center my-2">
         <p className="font-semibold">Time left to claim:</p>
         <p>{timeLeft}</p>
       </div>
@@ -155,7 +155,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
       <p className="text-md font-extralight text-center text-custom-black">
         A collaboration with digital artists
       </p>
-      <p className="text-md font-semibold text-center text-custom-black mb-4">
+      <p className="text-md font-semibold text-center text-custom-black mb-2">
         Qian Qian + Spongenuity
       </p>
 
@@ -177,7 +177,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
            <>
              <Link
                href="/inventory"
-               className="px-16 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block"
+               className="w-64 px-4 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block text-center"
              >
                View Your Edition
              </Link>
@@ -186,7 +186,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
                href="/gallery" 
                target="_blank"
                rel="noopener noreferrer"
-               className="px-12 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4"
+               className="w-64 px-4 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4 inline-block text-center"
              >
                View Collection Gallery
              </a>
@@ -195,7 +195,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        </>
      
 
-<div className="flex items-center my-4 justify-center text-md font-extralight text-center text-custom-black ">
+<div className="flex items-center mb-2 mt-4 justify-center text-md font-extralight text-center text-custom-black ">
       <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
       </div>
 

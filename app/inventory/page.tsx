@@ -43,6 +43,12 @@ function MyNFTsContent() {
         transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
       });
       setClient(newClient);
+
+      // Check for stored wallet address
+      const storedAddress = localStorage.getItem('walletAddress');
+      if (storedAddress) {
+        setMiniKitAddress(storedAddress);
+      }
     }
 
     // Set up MiniKit subscription for wallet auth
@@ -80,12 +86,15 @@ function MyNFTsContent() {
   useEffect(() => {
     if (client && miniKitAddress) {
       fetchOwnedNFTs();
+    } else if (client && !miniKitAddress && MiniKit.isInstalled()) {
+      triggerWalletAuth();
     }
   }, [client, miniKitAddress]);
 
   const handleWalletAuth = (response: MiniAppWalletAuthPayload) => {
     if (response.status === 'success') {
       setMiniKitAddress(response.address);
+      localStorage.setItem('walletAddress', response.address);
     } else {
       console.error('Wallet auth failed:', response);
     }
@@ -225,14 +234,7 @@ function MyNFTsContent() {
 
           <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
 
-          {!miniKitAddress ? (
-            <button
-              onClick={triggerWalletAuth}
-              className="px-16 py-4 mt-[25vh] rounded-full text-md font-medium bg-black text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black mb-4"
-            >
-              Load Collected Items
-            </button>
-          ) : (
+          {miniKitAddress && (
             <div className="flex items-center mb-6">
               <p className="text-md font-extralight text-center text-custom-black mr-2">
                 Address: <code className="break-all font-twk-lausanne">{`${miniKitAddress.slice(0, 6)}...${miniKitAddress.slice(-4)}`}</code>
