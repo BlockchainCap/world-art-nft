@@ -7,7 +7,7 @@ import { useState } from "react";
 import { WalletSignIn } from "@/components/Wallet";
 
 interface PreMintingProps {
-  handleMint: (nullifierHash: string) => Promise<void>;
+  handleMint: (nullifierHash: string) => Promise<string | null>;
   isMinting: boolean;
   onMenuToggle: () => void;
 }
@@ -125,7 +125,9 @@ export const PreMinting: React.FC<PreMintingProps> = ({
         <div className="flex flex-col items-center justify-start mt-[40vh] h-screen">
           <VerifyBlock 
             miniKitAddress={miniKitAddress} 
-            onVerificationSuccess={handleMint}
+            onVerificationSuccess={async (nullifierHash) => {
+              return handleMint(nullifierHash);
+            }}
             isMinting={isMinting}
           />
         </div>

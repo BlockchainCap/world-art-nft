@@ -58,4 +58,19 @@ contract WorldArtNFT is ERC721A, Ownable {
         require(newOwner != address(0), "New owner is the zero address");
         transferOwnership(newOwner);
     }
+
+    function getOwnedTokens(address owner) public view returns (uint256[] memory) {
+        uint256 tokenCount = balanceOf(owner);
+        uint256[] memory result = new uint256[](tokenCount);
+        uint256 index = 0;
+        uint256 totalSupply = totalSupply();
+
+        for (uint256 tokenId = 0; tokenId < totalSupply; tokenId++) {
+            if (ownerOf(tokenId) == owner) {
+                result[index] = tokenId;
+                index++;
+            }
+        }
+        return result;
+    }
 }

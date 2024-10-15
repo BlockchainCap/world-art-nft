@@ -27,7 +27,7 @@ const worldChainSepolia: Chain = {
   },
 };
 
-const contractAddress = '0xB03d978aC6a5B7d565431eF71b80b4191419A627';
+const contractAddress = '0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5';
 
 interface NFT {
   id: number;
@@ -97,22 +97,11 @@ export default function Gallery() {
 
       console.log(`Token ${tokenId} URI:`, tokenURI);
 
-      let metadata;
-      try {
-        const response = await fetch(tokenURI);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        metadata = await response.json();
-      } catch (error) {
-        console.error(`Failed to fetch metadata for token ${tokenId}:`, error);
-        return createPlaceholderNFT(tokenId, tokenURI);
-      }
-
+      // Instead of fetching metadata, we'll use the tokenURI directly
       return {
         id: tokenId,
-        name: metadata.name || `Unique Human #${tokenId}`,
-        image: metadata.image || '/circle.jpg',
+        name: `Unique Human #${tokenId}`,
+        image: tokenURI, // Use tokenURI as the image source
         tokenId: tokenId.toString(),
         tokenURI: tokenURI,
       };
@@ -151,7 +140,7 @@ export default function Gallery() {
       <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
 
       {loading ? (
-        <p>Loading NFTs...</p>
+        <p>Loading Editions...</p>
       ) : (
         <motion.div 
           className="grid grid-cols-2 gap-6 w-full max-w-2xl"
@@ -166,10 +155,11 @@ export default function Gallery() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <img src={nft.tokenURI} alt={nft.name} className="w-full h-48 object-cover" />
+              <div className="aspect-w-1 aspect-h-1 w-full">
+                <img src={nft.tokenURI} alt={nft.name} className="w-full h-full object-contain" />
+              </div>
               <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{nft.name}</h2>
-                <p className="text-gray-600 text-sm break-all">Token URI: {nft.tokenURI}</p>
+                <h2 className="text-md font-medium mb-2">{nft.name}</h2>
               </div>
             </motion.div>
           ))}

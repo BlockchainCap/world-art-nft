@@ -27,7 +27,7 @@ export default function Home() {
 
   const generateRandomSeed = () => Math.floor(Math.random() * 1000000000);
 
-  const checkStatus = useCallback(async (taskId: string) => {
+  const checkStatus = useCallback(async (taskId: string): Promise<string | null> => {
     console.log(`Checking status for task ID: ${taskId}`);
 
     try {
@@ -52,23 +52,25 @@ export default function Home() {
         setIsMinted(true);
         setHasMintedBefore(true);
         localStorage.setItem('hasMinted', 'true');
+        return data.result.s3_url;
       } else if (data.status === "Processing") {
-        console.log(`Task ${taskId} still processing. Checking again in 5 seconds.`);
-        setTimeout(() => checkStatus(taskId), 5000);
+        console.log(`Task ${taskId} still processing. Returning null.`);
+        return null;
       } else {
         console.error(`Unexpected status for task ${taskId}:`, data.status);
         setIsMinting(false);
+        return null;
       }
     } catch (error) {
       console.error(`Error in checkStatus for task ${taskId}:`, error);
       if (error instanceof Error) {
         console.error('Error details:', error.message);
       }
-      setTimeout(() => checkStatus(taskId), 5000);
+      return null;
     }
   }, []);
 
-  const handleMint = async (nullifierHash: string) => {
+  const handleMint = async (nullifierHash: string): Promise<string | null> => {
     setIsMinting(true);
     console.log(`Initiating minting process with nullifier hash: ${nullifierHash}`);
 
@@ -94,10 +96,26 @@ export default function Home() {
 
       if (data.status === "Processing") {
         console.log(`Portrait generation initiated. Task ID: ${data.task_id}`);
-        checkStatus(data.task_id);
+        return new Promise((resolve, reject) => {
+          const checkImageStatus = async () => {
+            try {
+              const imageUrl = await checkStatus(data.task_id);
+              if (imageUrl) {
+                setIsMinting(false);
+                resolve(imageUrl);
+              } else {
+                setTimeout(checkImageStatus, 5000); // Check again after 5 seconds
+              }
+            } catch (error) {
+              reject(error);
+            }
+          };
+          checkImageStatus();
+        });
       } else {
         console.error('Unexpected response from generate_portrait API:', data);
         setIsMinting(false);
+        return null;
       }
     } catch (error) {
       console.error('Error in handleMint:', error);
@@ -105,6 +123,7 @@ export default function Home() {
         console.error('Error details:', error.message);
       }
       setIsMinting(false);
+      return null;
     }
   };
 
