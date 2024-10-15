@@ -219,7 +219,6 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             onVerificationSuccess={async (nullifierHash) => {
               return handleMint(nullifierHash);
             }}
-
             isMinting={isMinting}
           />
         </div>
