@@ -5,12 +5,14 @@ import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract WorldArtNFT is ERC721A, Ownable {
+
     uint256 public immutable endTime;
 
     mapping(uint256 => bool) public nullifierHashes;
     mapping(uint256 => string) private _tokenURIs;
 
     event TokenURIUpdated(uint256 indexed tokenId, string newUri);
+
 
     constructor(
         string memory _name,
@@ -19,12 +21,14 @@ contract WorldArtNFT is ERC721A, Ownable {
         address initialOwner
     ) ERC721A(_name, _symbol) Ownable(initialOwner) {
         endTime = _endTime;
+
     }
 
     function mint(
         address to,
         uint256 nullifierHash,
         string memory _tokenURI
+
     ) public onlyOwner {
         require(block.timestamp <= endTime, "Minting period has ended");
         require(!nullifierHashes[nullifierHash], "Already minted");
@@ -37,6 +41,7 @@ contract WorldArtNFT is ERC721A, Ownable {
         uint256 tokenId = _nextTokenId();
         _mint(to, 1);
         _setTokenURI(tokenId, _tokenURI);
+
     }
 
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal {
@@ -72,5 +77,6 @@ contract WorldArtNFT is ERC721A, Ownable {
             }
         }
         return result;
+
     }
 }

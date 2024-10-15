@@ -14,6 +14,7 @@ import { worldChainSepolia } from "../WorldChainViemClient";
 
 const contractAddress = "0xf97F6E86C537a9e5bE6cdD5E25E6240bA3aE3fC5";
 
+
 export type VerifyCommandInput = {
   action: string;
   signal?: string;
@@ -44,6 +45,7 @@ const VerificationDetails: React.FC<VerificationDetailsProps> = ({
   details,
   verifyPayload,
 }) => (
+
   <div className="w-full text-black">
     <h2 className="font-semibold">Verification Details:</h2>
     <p>
@@ -74,6 +76,7 @@ export const VerifyBlock = ({
 }: {
   miniKitAddress: string | null;
   onVerificationSuccess: (nullifierHash: string) => Promise<string | null>;
+
   isMinting: boolean;
 }) => {
   const [verificationDetails, setVerificationDetails] = useState<{
@@ -97,6 +100,7 @@ export const VerifyBlock = ({
     "idle" | "verifying" | "generating" | "minting"
   >("idle");
 
+
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
       return;
@@ -108,6 +112,7 @@ export const VerifyBlock = ({
         if (response.status === "error") {
           setVerificationError("Error in MiniApp verification");
           console.error("Error payload", response);
+
           if ("error" in response) {
             console.error("Error details:", response.error);
           }
@@ -119,6 +124,7 @@ export const VerifyBlock = ({
         try {
           setCurrentStep("verifying");
           setVerificationProgress(50);
+
           const verifyResponse = await fetch("/api/verify", {
             method: "POST",
             headers: {
@@ -137,6 +143,7 @@ export const VerifyBlock = ({
           });
 
           setVerificationProgress(100);
+
           const verifyResponseJson = await verifyResponse.json();
           if (verifyResponseJson.success) {
             console.log("Verification success!");
@@ -168,6 +175,7 @@ export const VerifyBlock = ({
               setVerificationError("Failed to generate image");
               setCurrentStep("idle");
             }
+
           } else {
             setVerificationError(
               verifyResponseJson.error || "Verification failed"
@@ -250,6 +258,7 @@ export const VerifyBlock = ({
       setMintingProgress(0);
       setCurrentStep("idle");
     }
+
   };
 
   return (
@@ -288,6 +297,7 @@ export const VerifyBlock = ({
       )} */}
 
       {/* {miniKitAddress && (
+
         <div className="w-full pt-4 text-black">
           <h2 className="font-semibold">Your Eth Address:</h2>
           <p>
@@ -301,6 +311,7 @@ export const VerifyBlock = ({
       )} */}
       {verificationError && (
         <p className="text-red-500 max-w-md px-8">Error: {verificationError}</p>
+
       )}
     </div>
   );

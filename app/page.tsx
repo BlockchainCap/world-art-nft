@@ -134,6 +134,7 @@ export default function Home() {
   }, []);
 
   const handleMint = async (nullifierHash: string): Promise<string | null> => {
+
     setIsMinting(true);
     console.log(`Initiating minting process with nullifier hash: ${nullifierHash}`);
 

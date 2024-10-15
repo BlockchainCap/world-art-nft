@@ -11,6 +11,7 @@ import { worldartABI } from "@/contracts/worldartABI";
 
 interface PreMintingProps {
   handleMint: (nullifierHash: string) => Promise<string | null>;
+
   isMinting: boolean;
   onMenuToggle: () => void;
   onAddressChange: (address: string) => void;
@@ -50,6 +51,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
     fetchTotalSupply();
   }, []);
+
 
   return (
     <>
@@ -107,6 +109,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-4">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
+
           </div>
 
           <hr className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
@@ -153,6 +156,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
               onAddressChange(address);
             }
           }} />
+
         </div>
       )}
 
@@ -163,6 +167,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             onVerificationSuccess={async (nullifierHash) => {
               return handleMint(nullifierHash);
             }}
+
             isMinting={isMinting}
           />
         </div>
