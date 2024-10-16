@@ -13,7 +13,6 @@ import { useSession } from "next-auth/react";
 
 
 
-
 const contractAddress = "0xb03d978ac6a5b7d565431ef71b80b4191419a627";
 
 

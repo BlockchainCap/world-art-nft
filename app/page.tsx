@@ -44,6 +44,7 @@ export default function Home() {
   const [justMintedNFT, setJustMintedNFT] = useState<NFT | null>(null);
   const router = useRouter();
 
+
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
@@ -96,6 +97,7 @@ export default function Home() {
 
   useEffect(() => {
     if (client && miniKitAddress) {
+
       checkOwnedNFTs();
     }
     console.log('ownedNFT', ownedNFT);
@@ -311,17 +313,20 @@ export default function Home() {
         </div>
       )}
 
+
       {isLoading ? (
         <div>Loading...</div>
       ) : (
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
           {!session || (session && !ownedNFT) ? (
+
             <PreMinting
               handleMint={handleMint}
               isMinting={isMinting}
               onMenuToggle={handleMenuToggle}
               onAddressChange={setMiniKitAddress}
             />
+
           ) : (
             <ReturnMinting 
               onViewYours={handleViewYours}
