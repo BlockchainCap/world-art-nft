@@ -196,7 +196,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
      
 
 <div className="flex items-center mb-2 mt-4 justify-center text-md font-extralight text-center text-custom-black ">
-      <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
+      <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
       </div>
 
       <CountdownTimer targetDate={1729828799000} />

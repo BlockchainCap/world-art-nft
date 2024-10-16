@@ -141,6 +141,7 @@ export const VerifyBlock = ({
       }
 
       console.log("NFT minted successfully. Transaction hash:", data.transactionHash);
+
     } catch (error) {
       console.error("Error minting NFT:", error);
       throw error;

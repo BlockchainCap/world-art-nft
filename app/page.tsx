@@ -43,7 +43,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [justMintedNFT, setJustMintedNFT] = useState<NFT | null>(null);
   const router = useRouter();
-  const [hasCheckedOwnedNFT, setHasCheckedOwnedNFT] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
@@ -97,15 +97,17 @@ export default function Home() {
 
   useEffect(() => {
     if (client && miniKitAddress) {
-      checkOwnedNFTs().then(() => {
-        setHasCheckedOwnedNFT(true);
-      });
-    } else if (client && !miniKitAddress) {
-      setHasCheckedOwnedNFT(true);
+
+      checkOwnedNFTs();
     }
+    console.log('ownedNFT', ownedNFT);
+    console.log('miniKitAddress', miniKitAddress);
+    console.log('session', session);
+
   }, [client, miniKitAddress, checkOwnedNFTs]);
 
   useEffect(() => {
+
     if (session !== undefined && (ownedNFT !== undefined)) {
       setIsLoading(false);
     }
@@ -170,6 +172,7 @@ export default function Home() {
     }
     return null;
   };
+
 
   
 
@@ -310,22 +313,25 @@ export default function Home() {
         </div>
       )}
 
-      {!hasCheckedOwnedNFT || isLoading ? (
+
+      {isLoading ? (
         <div>Loading...</div>
       ) : (
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-          {ownedNFT ? (
-            <ReturnMinting 
-              onViewYours={handleViewYours}
-              onMenuToggle={handleMenuToggle}
-              setMiniKitAddress={setMiniKitAddress}
-            />
-          ) : (
+          {!session || (session && !ownedNFT) ? (
+
             <PreMinting
               handleMint={handleMint}
               isMinting={isMinting}
               onMenuToggle={handleMenuToggle}
               onAddressChange={setMiniKitAddress}
+            />
+
+          ) : (
+            <ReturnMinting 
+              onViewYours={handleViewYours}
+              onMenuToggle={handleMenuToggle}
+              setMiniKitAddress={setMiniKitAddress}
             />
           )}
         </div>
