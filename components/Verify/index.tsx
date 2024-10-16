@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 
 
 
+
 const contractAddress = "0xb03d978ac6a5b7d565431ef71b80b4191419a627";
 
 
@@ -141,6 +142,7 @@ export const VerifyBlock = ({
       }
 
       console.log("NFT minted successfully. Transaction hash:", data.transactionHash);
+
     } catch (error) {
       console.error("Error minting NFT:", error);
       throw error;
