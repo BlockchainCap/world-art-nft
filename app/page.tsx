@@ -100,9 +100,12 @@ export default function Home() {
     }
     console.log('ownedNFT', ownedNFT);
     console.log('miniKitAddress', miniKitAddress);
+    console.log('session', session);
+
   }, [client, miniKitAddress, checkOwnedNFTs]);
 
   useEffect(() => {
+
     if (session !== undefined && (ownedNFT !== undefined)) {
       setIsLoading(false);
     }
@@ -167,6 +170,7 @@ export default function Home() {
     }
     return null;
   };
+
 
   
 

@@ -151,7 +151,8 @@ export const PreMinting: React.FC<PreMintingProps> = ({
         
 
           <div className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-2">
-            <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Humans Collected
+            <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
+
 
           </div>
           <CountdownTimer targetDate={1729828799000} />
@@ -219,7 +220,6 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             onVerificationSuccess={async (nullifierHash) => {
               return handleMint(nullifierHash);
             }}
-
             isMinting={isMinting}
           />
         </div>
