@@ -161,7 +161,7 @@ export const VerifyBlock = ({
         <span className={isMinting ? "text-black" : "text-white"}>
           {isMinting
             ? "Verifying & Generating..."
-            : "Generate Yours"}
+            : "Collect Your Edition"}
         </span>
       </button>
       {error && (
