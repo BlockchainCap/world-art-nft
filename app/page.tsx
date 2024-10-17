@@ -44,6 +44,7 @@ export default function Home() {
   const [justMintedNFT, setJustMintedNFT] = useState<NFT | null>(null);
   const router = useRouter();
 
+
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
       const newClient = createPublicClient({
@@ -96,6 +97,7 @@ export default function Home() {
 
   useEffect(() => {
     if (client && miniKitAddress) {
+
       checkOwnedNFTs();
     }
     console.log('ownedNFT', ownedNFT);
@@ -106,6 +108,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status !== 'loading' && (ownedNFT !== undefined)) {
+
       setIsLoading(false);
     }
   }, [status, ownedNFT]);
@@ -330,6 +333,7 @@ export default function Home() {
           />
         )}
       </div>
+
     </div>
   );
 }

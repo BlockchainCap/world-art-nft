@@ -258,6 +258,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
         No user or personal data is used to generate the portrait.
       </motion.p>
 
+
       <motion.p {...fadeInAnimation} className="text-xs font-extralight text-center text-gray-400 mt-3 max-w-xl px-4 ">
         Developed by <a href="https://x.com/zile_cao" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@zile_cao</a> | <a href="https://x.com/blockchaincap" target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-custom-black">@blockchaincap</a> 
       </motion.p>
