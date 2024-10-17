@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface NFTDetailsProps {
@@ -13,7 +13,16 @@ interface NFTDetailsProps {
 }
 
 export const NFTDetails: React.FC<NFTDetailsProps> = ({ handleClose, handleShare, nft }) => {
-const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
+  const [aspectRatio, setAspectRatio] = useState(16 / 9); // Default aspect ratio
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.target as HTMLImageElement;
+    setAspectRatio(img.naturalWidth / img.naturalHeight);
+    setImageLoaded(true);
+  };
+
+  const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
   return (
     <>
       <button
@@ -24,19 +33,21 @@ const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
       </button>
       
       <motion.div 
-        className="w-full mb-6 px-4"
+        className="w-full max-w-3xl mx-12 mb-6 px-8 sm:px-12 relative"
+        style={{ paddingBottom: `${100 / aspectRatio}%` }}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 4 }}
+        animate={{ opacity: imageLoaded ? 1 : 0 }}
+        transition={{ duration: 3.5 }}
       >
         <Image
           src={nft.tokenURI}
           alt={nft.name}
-          width={1920}
-          height={1080}
-          layout="responsive"
-          objectFit="contain"
-          className="w-full h-auto object-contain"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          quality={100}
+          priority
+          className="object-contain"
+          onLoad={handleImageLoad}
         />
       </motion.div>
 
