@@ -151,7 +151,7 @@ export default function Gallery() {
       </button>
       
       <h1 className="text-4xl font-semi-bold font-twk-lausanne text-center text-custom-black mb-6">
-        UH Gallery
+        Gallery
       </h1>
       
       <p className="text-md font-extralight text-center text-custom-black mb-4 max-w-xl px-4">

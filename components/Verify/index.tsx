@@ -82,6 +82,15 @@ export const VerifyBlock = ({
 }) => {
   const { data: session } = useSession();
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleGenerateAndMint = async () => {
     if (!session || !session.user || !session.user.name) {
@@ -156,9 +165,11 @@ export const VerifyBlock = ({
           isMinting
             ? "bg-white text-black"
             : "bg-black text-white border-white"
-        } focus:ring-white`}
+        } focus:ring-white opacity-0 transition-opacity duration-500 ${
+          isVisible ? 'opacity-100' : ''
+        }`}
         onClick={handleGenerateAndMint}
-        disabled={isMinting}
+        disabled={isMinting || !isVisible}
       >
         <span className={isMinting ? "text-black" : "text-white"}>
           {isMinting

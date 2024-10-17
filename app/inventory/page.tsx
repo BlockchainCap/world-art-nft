@@ -283,7 +283,7 @@ function MyNFTsContent() {
 
 export default function MyNFTs() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div></div>}>
       <MyNFTsContent />
     </Suspense>
   );

@@ -35,7 +35,7 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
   const [miniKitAddress, setMiniKitAddress] = useState<string | null>(null);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isMinted, setIsMinted] = useState(false);
   const [hasMintedBefore, setHasMintedBefore] = useState(false);
@@ -105,11 +105,10 @@ export default function Home() {
   }, [client, miniKitAddress, checkOwnedNFTs]);
 
   useEffect(() => {
-
-    if (session !== undefined && (ownedNFT !== undefined)) {
+    if (status !== 'loading' && (ownedNFT !== undefined)) {
       setIsLoading(false);
     }
-  }, [session, ownedNFT]);
+  }, [status, ownedNFT]);
 
   const checkStatus = useCallback(async (taskId: string): Promise<string | null> => {
     console.log(`Checking status for task ID: ${taskId}`);
@@ -284,6 +283,10 @@ export default function Home() {
   }, []);
   
 
+  if (status === 'loading') {
+    return <div></div>;
+  }
+
   return (
     <div className="flex flex-col items-center min-h-screen px-4 relative">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -311,26 +314,22 @@ export default function Home() {
         </div>
       )}
 
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-          {!session || (session && !ownedNFT) ? (
-            <PreMinting
-              handleMint={handleMint}
-              isMinting={isMinting}
-              onMenuToggle={handleMenuToggle}
-              onAddressChange={setMiniKitAddress}
-            />
-          ) : (
-            <ReturnMinting 
-              onViewYours={handleViewYours}
-              onMenuToggle={handleMenuToggle}
-              setMiniKitAddress={setMiniKitAddress}
-            />
-          )}
-        </div>
-      )}
+      <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
+        {!session || (session && !ownedNFT) ? (
+          <PreMinting
+            handleMint={handleMint}
+            isMinting={isMinting}
+            onMenuToggle={handleMenuToggle}
+            onAddressChange={setMiniKitAddress}
+          />
+        ) : (
+          <ReturnMinting 
+            onViewYours={handleViewYours}
+            onMenuToggle={handleMenuToggle}
+            setMiniKitAddress={setMiniKitAddress}
+          />
+        )}
+      </div>
     </div>
   );
 }

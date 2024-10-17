@@ -27,7 +27,7 @@ const contractAddress = '0xb03d978ac6a5b7d565431ef71b80b4191419a627';
         className="w-full mb-6 px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 4 }}
       >
         <Image
           src={nft.tokenURI}
