@@ -220,7 +220,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
       <motion.hr {...fadeInAnimation} className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
       <motion.p {...fadeInAnimation} className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
-        <strong>Unique Humans</strong> is a generative portrait collection inspired by
+        <strong className="font-semibold">Unique Humans</strong> is a generative portrait collection inspired by
         anonymous proof of human online. Using generative AI and coding,
         unique abstract portrait images are generated on World Chain for a
         limited time and each real human is entitled to one free edition.
