@@ -101,7 +101,7 @@ export default function Gallery() {
       name: `Unique Human #${tokenId}`,
       artist: 'Unknown',
       description: 'Error fetching metadata',
-      tokenURI: '/circle.jpg',
+      tokenURI: '/logo.jpeg',
       tokenId: tokenId.toString(),
     };
   }
