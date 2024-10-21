@@ -96,9 +96,9 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
           >
             Generate World Wallet
           </button>
-          {/* <p className="text-xs font-extralight text-center text-red-700 mt-2 max-w-xl px-4">
-          Minting paused due to high traffic. Please check back later.
-          </p> */}
+          <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4">
+          You must do this step inside the <a href="https://world.org/?download" className="underline">World App</a>.
+          </p>
         </div>
       ) : null}
     </div>
