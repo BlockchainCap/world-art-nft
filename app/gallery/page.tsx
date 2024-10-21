@@ -22,6 +22,7 @@ interface NFT {
 export default function Gallery() {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
+  const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,9 +31,14 @@ export default function Gallery() {
   const [totalSupply, setTotalSupply] = useState<number>(0);
   const itemsPerPage = 50;
 
-
   useEffect(() => {
-    fetchNFTs();
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
+      const newClient = createPublicClient({
+        chain: worldChainMainnet,
+        transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
+      });
+      setClient(newClient);
+    }
   }, []);
 
   useEffect(() => {
@@ -65,13 +71,10 @@ export default function Gallery() {
       const validNFTs = fetchedNFTs.filter((nft): nft is NFT => nft !== null);
       setNfts(validNFTs);
       setFilteredNfts(validNFTs);
-
     } catch (error) {
       console.error("Error fetching NFTs:", error);
-      setNfts([]);
     } finally {
       setLoading(false);
-      setIsFetching(false);
     }
   }
 
@@ -112,7 +115,6 @@ export default function Gallery() {
       tokenId: tokenId.toString(),
     };
   }
-
 
   const openModal = (nft: NFT) => {
     setSelectedNFT(nft);
@@ -250,7 +252,6 @@ export default function Gallery() {
     );
   };
 
-
   return (
     <div className="flex flex-col items-center min-h-screen px-4 max-w-full overflow-x-hidden">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -306,7 +307,6 @@ export default function Gallery() {
 
       <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
 
-
       {loading ? (
         <p>Loading Editions...</p>
       ) : (
@@ -349,7 +349,6 @@ export default function Gallery() {
 
           <Pagination />
         </>
-
       )}
 
       <AnimatePresence>
