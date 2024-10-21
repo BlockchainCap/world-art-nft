@@ -32,8 +32,8 @@ export const SignIn = ({ onAddressChange }: { onAddressChange: (address: string 
           >
             Sign in with World ID
           </button>
-          <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4 mb-4">
-            You must sign in within the World App.
+          <p className="text-xs font-extralight text-center text-red-700 mt-2 max-w-xl px-4 mb-4">
+          Minting paused due to high traffic. Please check back later.
           </p>
         </div>
       )}
