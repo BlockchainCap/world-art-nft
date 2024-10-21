@@ -209,7 +209,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
        </motion.div>
          
 
-<motion.div {...fadeInAnimation} className="flex items-center mb-2 mt-4 justify-center text-md font-extralight text-center text-custom-black ">
+<motion.div {...fadeInAnimation} className="flex items-center my-2 justify-center text-md font-extralight text-center text-custom-black ">
       <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
       </motion.div>
 

@@ -183,7 +183,7 @@ export const VerifyBlock = ({
         className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 2 }}
+        transition={{ duration: 1, delay: 1 }}
       >
         This normally takes ~20 seconds. Try again later if taking longer.
       </motion.p>
