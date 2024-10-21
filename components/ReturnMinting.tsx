@@ -180,7 +180,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
       </p> */}
 
      
-       <>
+       <motion.div {...fadeInAnimation} className="flex-col col-1 justify-center text-center">
          {showNFTDetails && userNFT ? (
            <NFTDetails
              handleClose={handleCloseNFTDetails}
@@ -189,25 +189,25 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
            />
          ) : (
            <>
-             <Link
+             <motion.a {...fadeInAnimation}
                href="/inventory"
                className="w-64 px-4 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block text-center"
              >
                View Your Edition
-             </Link>
+             </motion.a>
 
-             <a
+             <motion.a {...fadeInAnimation}
                href="/gallery" 
                target="_blank"
                rel="noopener noreferrer"
                className="w-64 px-4 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4 inline-block text-center"
              >
                View Collection Gallery
-             </a>
+             </motion.a>
            </>
          )}
-       </>
-     
+       </motion.div>
+         
 
 <motion.div {...fadeInAnimation} className="flex items-center mb-2 mt-4 justify-center text-md font-extralight text-center text-custom-black ">
       <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
@@ -220,7 +220,7 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
       <motion.hr {...fadeInAnimation} className="w-11/12 max-w-md border-t border-custom-white my-4 mx-8" />
 
       <motion.p {...fadeInAnimation} className="text-md font-extralight text-center text-custom-black mt-2 max-w-xl px-4 ">
-        <strong>Unique Humans</strong> is a generative portrait collection inspired by
+        <strong className="font-semibold">Unique Humans</strong> is a generative portrait collection inspired by
         anonymous proof of human online. Using generative AI and coding,
         unique abstract portrait images are generated on World Chain for a
         limited time and each real human is entitled to one free edition.
