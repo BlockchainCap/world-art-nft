@@ -164,7 +164,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
             <SignIn onAddressChange={setMiniKitAddress} />
           </motion.div>
         
-          <motion.div {...fadeInAnimation} className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-2">
+          <motion.div {...fadeInAnimation} className="flex items-center justify-center text-md mt-4 font-extralight text-center text-custom-black my-2">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
           </motion.div>
           <motion.div {...fadeInAnimation}>

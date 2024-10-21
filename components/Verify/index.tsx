@@ -160,7 +160,7 @@ export const VerifyBlock = ({
 
   return (
     <div className="max-w-m mx-6 flex flex-col items-center">
-      {/* <button
+      <button
         className={`px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 ${
           isMinting
             ? "bg-white text-black"
@@ -177,13 +177,13 @@ export const VerifyBlock = ({
             ? "Verifying & Generating..."
             : "Collect Your Edition"}
         </span>
-      </button> */}
+      </button>
 
-      <div className="px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 text-center">
+      {/* <div className="px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 text-center">
         <span className="text-black">
           Minting paused due to high traffic. Please check back later.
         </span>
-      </div>
+      </div> */}
       {error && (
         <p className="text-red-500 max-w-md px-8">Error: {error}</p>
       )}
