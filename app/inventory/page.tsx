@@ -173,6 +173,7 @@ function MyNFTsContent() {
       };
     } catch (error) {
       console.error(`Error fetching NFT data for token ${tokenId}:`, error);
+      // Return null for non-existent tokens instead of throwing an error
       return null;
     }
   }
