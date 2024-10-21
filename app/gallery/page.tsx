@@ -24,29 +24,48 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFetching, setIsFetching] = useState(false);
+  const [filteredNfts, setFilteredNfts] = useState<NFT[]>([]);
+  const [totalSupply, setTotalSupply] = useState<number>(0);
+  const itemsPerPage = 50;
+
 
   useEffect(() => {
     fetchNFTs();
   }, []);
 
-  async function fetchNFTs(forceUpdate = false) {
+  useEffect(() => {
+    if (client) {
+      fetchNFTs();
+    }
+  }, [client, currentPage]);
+
+  async function fetchNFTs() {
+    if (!client) return;
+
     try {
       setLoading(true);
-      setIsFetching(true);
-      const response = await fetch(`/api/cached-nfts${forceUpdate ? '?forceUpdate=true' : ''}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      if (Array.isArray(data.nfts)) {
-        console.log("Received NFTs:", data.nfts);
-        setNfts(data.nfts);
-      } else {
-        console.error("Received data is not an array:", data);
-        setNfts([]);
-      }
+
+      const supply = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'totalSupply',
+      }) as bigint;
+
+      setTotalSupply(Number(supply));
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, Number(supply));
+
+      const fetchedNFTs = await Promise.all(
+        Array.from({ length: endIndex - startIndex }, (_, i) => startIndex + i).map(fetchNFTData)
+      );
+
+      const validNFTs = fetchedNFTs.filter((nft): nft is NFT => nft !== null);
+      setNfts(validNFTs);
+      setFilteredNfts(validNFTs);
+
     } catch (error) {
       console.error("Error fetching NFTs:", error);
       setNfts([]);
@@ -56,10 +75,44 @@ export default function Gallery() {
     }
   }
 
-  const handleManualFetch = () => {
-    setIsFetching(true);
-    fetchNFTs(true);
-  };
+  async function fetchNFTData(tokenId: number): Promise<NFT | null> {
+    if (!client) return null;
+
+    try {
+      const tokenURIData = await client.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: worldartABI,
+        functionName: 'tokenURI',
+        args: [BigInt(tokenId)],
+      }) as string;
+
+      const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
+
+      return {
+        id: tokenId,
+        name: `Unique Human #${tokenId}`,
+        artist: decodedData.artist,
+        description: decodedData.description,
+        tokenURI: decodedData.image,
+        tokenId: tokenId.toString(),
+      };
+    } catch (error) {
+      console.error(`Error fetching NFT data for token ${tokenId}:`, error);
+      return createPlaceholderNFT(tokenId, 'Error fetching tokenURI');
+    }
+  }
+
+  function createPlaceholderNFT(tokenId: number, tokenURI: string): NFT {
+    return {
+      id: tokenId,
+      name: `Unique Human #${tokenId}`,
+      artist: 'Unknown',
+      description: 'Error fetching metadata',
+      tokenURI: '/logo.jpeg',
+      tokenId: tokenId.toString(),
+    };
+  }
+
 
   const openModal = (nft: NFT) => {
     setSelectedNFT(nft);
@@ -81,13 +134,125 @@ export default function Gallery() {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const filteredNFTs = nfts.filter(nft => 
-    nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    nft.id.toString().includes(searchTerm)
-  );
+  const loadMoreNFTs = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+  };
+
+  const handleSearch = async () => {
+    if (!client) return;
+
+    if (!searchTerm) {
+      // If search term is empty, go back to page 1 and reload
+      setCurrentPage(1);
+      await fetchNFTs();
+      return;
+    }
+
+    const tokenId = parseInt(searchTerm);
+    if (isNaN(tokenId)) return;
+
+    try {
+      setLoading(true);
+      if (tokenId >= totalSupply) {
+        setFilteredNfts([{
+          id: tokenId,
+          name: `#${tokenId} Does Not Exist`,
+          artist: 'N/A',
+          description: 'This edition has not been claimed.',
+          tokenURI: '', // No image
+          tokenId: tokenId.toString(),
+        }]);
+      } else {
+        const nft = await fetchNFTData(tokenId);
+        if (nft) {
+          setFilteredNfts([nft]);
+        } else {
+          setFilteredNfts([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error searching for NFT:", error);
+      setFilteredNfts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Pagination = () => {
+    const totalPages = Math.ceil(totalSupply / itemsPerPage);
+    const maxVisiblePages = 3;
+
+    const getPageNumbers = () => {
+      const pageNumbers = [];
+      const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      return pageNumbers;
+    };
+
+    return (
+      <nav className="flex justify-center items-center space-x-5 mt-8">
+        <button
+          onClick={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+          className="text-custom-black disabled:text-gray-300 font-twk-lausanne font-medium text-base"
+        >
+          &lt;&lt;
+        </button>
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className="text-custom-black disabled:text-gray-300 font-twk-lausanne font-medium text-base"
+        >
+          &lt;
+        </button>
+        {getPageNumbers().map(number => (
+          <button
+            key={number}
+            onClick={() => setCurrentPage(number)}
+            className={`font-twk-lausanne font-medium text-base ${
+              currentPage === number ? 'text-xl text-custom-black font-semibold' : 'text-custom-black'
+            }`}
+          >
+            {number}
+          </button>
+        ))}
+        {currentPage < totalPages - maxVisiblePages && (
+          <>
+            <span className="text-custom-black font-twk-lausanne font-medium text-base">...</span>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              className="font-twk-lausanne font-medium text-base text-custom-black"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className="text-custom-black disabled:text-gray-300 font-twk-lausanne font-medium text-base"
+        >
+          &gt;
+        </button>
+        <button
+          onClick={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+          className="text-custom-black disabled:text-gray-300 font-twk-lausanne font-medium text-base"
+        >
+          &gt;&gt;
+        </button>
+      </nav>
+    );
+  };
+
 
   return (
-    <div className="flex flex-col items-center min-h-screen px-4">
+    <div className="flex flex-col items-center min-h-screen px-4 max-w-full overflow-x-hidden">
       <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       <button
         onClick={handleMenuToggle}
@@ -118,53 +283,73 @@ export default function Gallery() {
         View all minted Unique Humans from World Art.
       </p>
 
-      
-
-      <hr className="w-11/12 max-w-md border-t border-custom-white mb-4 mx-8" />
-
-      <div className="w-full max-w-md mb-6 flex justify-between items-center">
+      <div className="flex items-center mb-4 w-full max-w-md">
         <input
-          type="text"
-          placeholder="Search by name or ID..."
+          type="number"
+          placeholder="Search by token ID..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (e.target.value === '') {
+              handleSearch(); // This will go back to page 1 and reload when the input is cleared
+            }
+          }}
+          className="w-full px-4 py-2 rounded-l-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        {/* <button
-          onClick={handleManualFetch}
-          disabled={isFetching}
-          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
+        <button
+          onClick={handleSearch}
+          className="px-6 py-2 bg-custom-black text-white rounded-r-full hover:bg-gray-800 transition-colors font-twk-lausanne border border-custom-black"
         >
-          {isFetching ? 'Fetching...' : 'Fetch NFTs'}
-        </button> */}
+          Search
+        </button>
       </div>
+
+      <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
+
 
       {loading ? (
         <p>Loading Editions...</p>
       ) : (
-        <motion.div 
-          className="grid grid-cols-2 gap-6 w-full max-w-2xl"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {filteredNFTs.map((nft) => (
-            <motion.div
-              key={nft.id}
-              className="bg-white overflow-hidden duration-300 cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => openModal(nft)}
-            >
-              <div className="aspect-w-1 aspect-h-1 w-full">
-                <img src={nft.tokenURI} alt={nft.name} className="w-full h-full object-contain" />
-              </div>
-              <div className="p-4">
-                <h2 className="text-md font-medium mb-2">{nft.name}</h2>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        <>
+          <motion.div 
+            className="grid grid-cols-2 gap-6 w-full max-w-2xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {filteredNfts.map((nft) => (
+              <motion.div
+                key={nft.id}
+                className="bg-white overflow-hidden duration-300 cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => nft.tokenURI ? openModal(nft) : null}
+              >
+                {nft.tokenURI ? (
+                  <>
+                    <div className="aspect-w-1 aspect-h-1 w-full">
+                      <img src={nft.tokenURI} alt={nft.name} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="p-4">
+                      <h2 className="text-md font-medium mb-2">{nft.name}</h2>
+                    </div>
+                  </>
+                ) : (
+                  <div className="aspect-w-1 aspect-h-1 mb-4 w-full flex items-center justify-center ">
+                    <div className="text-center p-4">
+                      <h2 className="text-xl font-medium mb-2">{nft.name}</h2>
+                      <p className="text-sm text-gray-500">{nft.description}</p>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+          <hr className="w-11/12 max-w-md border-t border-custom-white mt-2 mx-8" />
+
+          <Pagination />
+        </>
+
       )}
 
       <AnimatePresence>
@@ -208,6 +393,7 @@ export default function Gallery() {
           </motion.div>
         )}
       </AnimatePresence>
+      
     </div>
   );
 }
