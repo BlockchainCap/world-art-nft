@@ -89,13 +89,16 @@ export const WalletSignIn = ({ onAddressChange }: { onAddressChange: (address: s
   return (
     <div className="flex flex-col items-center">
       {session && !walletAddress ? (
-        <div>
-         <button 
-            onClick={handleWalletSignIn} 
+        <div className="flex flex-col items-center">
+          <button 
+            onClick={handleWalletSignIn}
             className={`${buttonStyle} text-custom-black bg-white hover:bg-custom-hover focus:ring-custom-focus`}
           >
             Generate World Wallet
           </button>
+          <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4">
+            You can only do this within the World App.
+          </p>
         </div>
       ) : null}
     </div>

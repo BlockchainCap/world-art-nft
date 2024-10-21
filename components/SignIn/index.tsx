@@ -25,15 +25,17 @@ export const SignIn = ({ onAddressChange }: { onAddressChange: (address: string 
           </button> */}
         </div>
       ) : (
-        <>
+        <div className="flex flex-col items-center">
           <button 
             onClick={handleWorldIDSignIn} 
-            className={`${buttonStyle} text-custom-black bg-white hover:bg-custom-hover focus:ring-custom-focus mb-4`}
+            className={`${buttonStyle} text-custom-black bg-white hover:bg-custom-hover focus:ring-custom-focus`}
           >
             Sign in with World ID
           </button>
-      
-        </>
+          <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4 mb-4">
+            You must sign in within the World App.
+          </p>
+        </div>
       )}
     </div>
   );
