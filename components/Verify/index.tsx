@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { createPublicClient, http, Chain } from "viem";
 import { worldChainMainnet } from "../WorldChainViemClient";
 import { useSession } from "next-auth/react";
+import { motion } from "framer-motion";
 
 
 
@@ -178,9 +179,14 @@ export const VerifyBlock = ({
             : "Collect Your Edition"}
         </span>
       </button>
-      <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4">
-          This could take up to 20 seconds under normal traffic.
-          </p>
+      <motion.p 
+        className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2 }}
+      >
+        This normally takes ~20 seconds. Try again later if taking longer.
+      </motion.p>
 
       {/* <div className="px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 text-center">
         <span className="text-black">
