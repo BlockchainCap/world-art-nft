@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
       });
 
       console.log("NFT minted successfully. Transaction hash:", hash);
+      
+      // Update the NFT cache
+      await updateNFTCache();
+
       return NextResponse.json({ success: true, transactionHash: hash });
     } catch (error) {
       console.error("Error in writeContract:", error);
@@ -54,5 +58,13 @@ export async function POST(req: NextRequest) {
       error: "Server error", 
       details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
+  }
+}
+
+async function updateNFTCache() {
+  try {
+    await fetch(`${process.env.NEXTAUTH_URL}/api/cached-nfts`, { method: 'GET' });
+  } catch (error) {
+    console.error("Error updating NFT cache:", error);
   }
 }

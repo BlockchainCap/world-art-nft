@@ -22,89 +22,44 @@ interface NFT {
 export default function Gallery() {
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [loading, setLoading] = useState(true);
-  const [client, setClient] = useState<ReturnType<typeof createPublicClient> | null>(null);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {
-      const newClient = createPublicClient({
-        chain: worldChainMainnet,
-        transport: http(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL),
-      });
-      setClient(newClient);
-    }
+    fetchNFTs();
   }, []);
 
-  useEffect(() => {
-    if (client) {
-      fetchNFTs();
-    }
-  }, [client]);
-
-  async function fetchNFTs() {
-    if (!client) return;
-
+  async function fetchNFTs(forceUpdate = false) {
     try {
       setLoading(true);
-
-      const totalSupply = await client.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: worldartABI,
-        functionName: 'totalSupply',
-      }) as bigint;
-
-      console.log("Total supply:", totalSupply.toString());
-
-      const fetchedNFTs = await Promise.all(
-        Array.from({ length: Number(totalSupply) }, (_, i) => i).map(fetchNFTData)
-      );
-
-      setNfts(fetchedNFTs.filter((nft): nft is NFT => nft !== null));
+      setIsFetching(true);
+      const response = await fetch(`/api/cached-nfts${forceUpdate ? '?forceUpdate=true' : ''}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (Array.isArray(data.nfts)) {
+        console.log("Received NFTs:", data.nfts);
+        setNfts(data.nfts);
+      } else {
+        console.error("Received data is not an array:", data);
+        setNfts([]);
+      }
     } catch (error) {
       console.error("Error fetching NFTs:", error);
+      setNfts([]);
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   }
 
-  async function fetchNFTData(tokenId: number): Promise<NFT | null> {
-    if (!client) return null;
-
-    try {
-      const tokenURIData = await client.readContract({
-        address: contractAddress as `0x${string}`,
-        abi: worldartABI,
-        functionName: 'tokenURI',
-        args: [BigInt(tokenId)],
-      }) as string;
-
-      const decodedData = JSON.parse(atob(tokenURIData.split(',')[1]));
-
-      return {
-        id: tokenId,
-        name: `Unique Human #${tokenId}`,
-        artist: decodedData.artist,
-        description: decodedData.description,
-        tokenURI: decodedData.image,
-        tokenId: tokenId.toString(),
-      };
-    } catch (error) {
-      console.error(`Error fetching NFT data for token ${tokenId}:`, error);
-      return createPlaceholderNFT(tokenId, 'Error fetching tokenURI');
-    }
-  }
-
-  function createPlaceholderNFT(tokenId: number, tokenURI: string): NFT {
-    return {
-      id: tokenId,
-      name: `Unique Human #${tokenId}`,
-      artist: 'Unknown',
-      description: 'Error fetching metadata',
-      tokenURI: '/logo.jpeg',
-      tokenId: tokenId.toString(),
-    };
-  }
+  const handleManualFetch = () => {
+    setIsFetching(true);
+    fetchNFTs(true);
+  };
 
   const openModal = (nft: NFT) => {
     setSelectedNFT(nft);
@@ -125,6 +80,11 @@ export default function Gallery() {
   const handleMenuToggle = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const filteredNFTs = nfts.filter(nft => 
+    nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    nft.id.toString().includes(searchTerm)
+  );
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4">
@@ -158,7 +118,26 @@ export default function Gallery() {
         View all minted Unique Humans from World Art.
       </p>
 
-      <hr className="w-11/12 max-w-md border-t border-custom-white mb-6 mt-2 mx-8" />
+      
+
+      <hr className="w-11/12 max-w-md border-t border-custom-white mb-4 mx-8" />
+
+      <div className="w-full max-w-md mb-6 flex justify-between items-center">
+        <input
+          type="text"
+          placeholder="Search by name or ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {/* <button
+          onClick={handleManualFetch}
+          disabled={isFetching}
+          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
+        >
+          {isFetching ? 'Fetching...' : 'Fetch NFTs'}
+        </button> */}
+      </div>
 
       {loading ? (
         <p>Loading Editions...</p>
@@ -169,7 +148,7 @@ export default function Gallery() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {nfts.map((nft) => (
+          {filteredNFTs.map((nft) => (
             <motion.div
               key={nft.id}
               className="bg-white overflow-hidden duration-300 cursor-pointer"
