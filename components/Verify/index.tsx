@@ -178,6 +178,9 @@ export const VerifyBlock = ({
             : "Collect Your Edition"}
         </span>
       </button>
+      <p className="text-xs font-extralight text-center text-custom-black mt-2 max-w-xl px-4">
+          This could take up to 20 seconds under normal traffic.
+          </p>
 
       {/* <div className="px-16 py-4 rounded-full text-md font-semibold font-twk-lausanne my-2 text-center">
         <span className="text-black">
