@@ -29,7 +29,8 @@ export default function Gallery() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredNfts, setFilteredNfts] = useState<NFT[]>([]);
   const [totalSupply, setTotalSupply] = useState<number>(0);
-  const itemsPerPage = 50;
+  const itemsPerPage = 30;
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL) {

@@ -88,7 +88,7 @@ export const PreMinting: React.FC<PreMintingProps> = ({
     }
   
     return (
-      <div className="text-center my-4">
+      <div className="text-center my-2">
         <p className="font-semibold">Time left to claim: </p>
         <p>{timeLeft}</p>
       </div>
@@ -162,9 +162,12 @@ export const PreMinting: React.FC<PreMintingProps> = ({
           </motion.p>
           <motion.div {...fadeInAnimation}>
             <SignIn onAddressChange={setMiniKitAddress} />
+            <p className="text-xs font-extralight text-center text-red-700 my-2 max-w-xl px-4">
+              Currently experiencing high traffic. Claiming may take a while.
+            </p>
           </motion.div>
         
-          <motion.div {...fadeInAnimation} className="flex items-center justify-center text-md font-extralight text-center text-custom-black my-2">
+          <motion.div {...fadeInAnimation} className="flex items-center justify-center text-md mt-4 font-extralight text-center text-custom-black my-2">
             <span className="font-semibold mr-1">{totalSupply ?? '...'}</span> Unique Collectors
           </motion.div>
           <motion.div {...fadeInAnimation}>

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.3.1",
     "@worldcoin/idkit": "^1.3.0",
     "@worldcoin/minikit-js": "0.0.36-internal-alpha",
     "eruda": "^3.4.0",
@@ -18,8 +19,8 @@
     "next-auth": "^4.24.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "worldcoin": "^1.0.0",
-    "viem": "^2.21.0"
+    "viem": "^2.21.0",
+    "worldcoin": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.10",

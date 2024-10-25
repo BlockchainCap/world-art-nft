@@ -3,6 +3,8 @@ import "./fonts.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
+import { Analytics } from "@vercel/analytics/react"
+
 
 export default function RootLayout({
   children,
@@ -27,6 +29,7 @@ export default function RootLayout({
             </MiniKitProvider>
           {/* </ErudaProvider> */}
         </NextAuthProvider>
+        <Analytics />
       </body>
     </html>
   );
