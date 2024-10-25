@@ -318,20 +318,20 @@ export default function Home() {
       )}
 
       <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
-        {!session || (session && !ownedNFT) ? (
+        {/* {!session ? (
           <PreMinting
             handleMint={handleMint}
             isMinting={isMinting}
             onMenuToggle={handleMenuToggle}
             onAddressChange={setMiniKitAddress}
           />
-        ) : (
+        ) : ( */}
           <ReturnMinting 
             onViewYours={handleViewYours}
             onMenuToggle={handleMenuToggle}
             setMiniKitAddress={setMiniKitAddress}
           />
-        )}
+        {/* )} */}
       </div>
 
     </div>
