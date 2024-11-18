@@ -189,18 +189,18 @@ export const ReturnMinting: React.FC<ReturnMintingProps> = ({
            />
          ) : (
            <>
-             <motion.a {...fadeInAnimation}
+             {/* <motion.a {...fadeInAnimation}
                href="/inventory"
                className="w-64 px-4 py-4 rounded-full text-md font-medium font-twk-lausanne transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border my-4 border-black text-black bg-white hover:bg-gray-100 focus:ring-black inline-block text-center"
              >
                View Your Edition
-             </motion.a>
+             </motion.a> */}
 
              <motion.a {...fadeInAnimation}
                href="/gallery" 
                target="_blank"
                rel="noopener noreferrer"
-               className="w-64 px-4 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black mb-4 inline-block text-center"
+               className="w-64 px-4 py-4 rounded-full text-md font-medium transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 border border-black text-black bg-white hover:bg-gray-100 focus:ring-black my-4 inline-block text-center"
              >
                View Collection Gallery
              </motion.a>
